@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Caveat:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --color-primary: #6241fe;
+  --color-primary-light: #a99aff;
+  --color-accent: #7c3aed;
+  --color-ink: #1a1a2e;
+  --color-paper: #f8f7ff;
+  --color-sketch: #e8e5ff;
+  --color-muted: #6b7280;
+  --color-border: #e5e2f8;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-handwriting: 'Caveat', cursive;
+  --shadow-soft: 0 4px 24px rgba(98, 65, 254, 0.08);
+  --shadow-card: 0 2px 16px rgba(98, 65, 254, 0.12);
+  --shadow-hover: 0 8px 40px rgba(98, 65, 254, 0.2);
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-light);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ─── Utility Classes ────────────────────────────────────────── */
+@layer components {
+  .section-padding {
+    @apply px-6 md:px-12 lg:px-24 py-20 md:py-28;
+  }
+
+  .section-heading {
+    @apply text-4xl md:text-5xl font-bold text-ink leading-tight;
+  }
+
+  .section-sub {
+    @apply text-lg text-gray-500 max-w-2xl mx-auto;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white text-sm;
+    background: linear-gradient(135deg, #6241fe 0%, #7c3aed 100%);
+    box-shadow: 0 4px 20px rgba(98, 65, 254, 0.35);
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(98, 65, 254, 0.5);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-sm border-2;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: transparent;
+    transition: all 0.3s ease;
+  }
+  .btn-secondary:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .card-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(98, 65, 254, 0.12);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+  }
+  .card-glass:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(98, 65, 254, 0.25);
+  }
+
+  .sketch-badge {
+    font-family: var(--font-handwriting);
+    background: var(--color-sketch);
+    color: var(--color-primary);
+    border-radius: 8px;
+    padding: 4px 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: inline-block;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #6241fe 0%, #a855f7 50%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .highlight-box {
+    position: relative;
+    display: inline-block;
+  }
+  .highlight-box::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: -4px;
+    right: -4px;
+    height: 40%;
+    background: rgba(98, 65, 254, 0.15);
+    border-radius: 4px;
+    z-index: -1;
+  }
+
+  .annotation-bubble {
+    font-family: var(--font-handwriting);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1.5px solid;
+    position: absolute;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  .ticker-track {
+    display: flex;
+    animation: ticker 35s linear infinite;
+    width: max-content;
+  }
+  .ticker-track:hover {
+    animation-play-state: paused;
+  }
+
+  .noise-bg {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+}
+
+/* ─── Ant Design Overrides ──────────────────────────────────── */
+.ant-btn-primary {
+  background: linear-gradient(135deg, #6241fe, #7c3aed) !important;
+  border: none !important;
+  border-radius: 999px !important;
+}
+
+.ant-input {
+  border-radius: 12px !important;
+}
+
+/* ─── Three.js Canvas ────────────────────────────────────────── */
+#hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-12px) rotate(var(--rot, 0deg)); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-float-2 {
+  animation: float 7s ease-in-out 1.5s infinite;
+}
+.animate-float-3 {
+  animation: float 8s ease-in-out 3s infinite;
+}
+
+/* ─── Doodle SVG decorations ─────────────────────────────────── */
+.doodle-line {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+/* ─── Responsive helpers ────────────────────────────────────── */
+@media (max-width: 768px) {
+  .section-heading {
+    font-size: 2rem;
+  }
+  .section-padding {
+    padding: 4rem 1.5rem;
+  }
+}

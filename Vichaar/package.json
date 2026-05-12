@@ -1,0 +1,36 @@
+{
+  "name": "vichaar",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.10"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^6.2.2",
+    "@react-oauth/google": "^0.13.5",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@tiptap/extension-image": "^3.23.1",
+    "@tiptap/extension-link": "^3.23.1",
+    "@tiptap/extension-placeholder": "^3.23.1",
+    "@tiptap/extension-underline": "^3.23.1",
+    "@tiptap/react": "^3.23.1",
+    "@tiptap/starter-kit": "^3.23.1",
+    "antd": "^6.3.7",
+    "axios": "^1.16.0",
+    "framer-motion": "^12.38.0",
+    "gsap": "^3.15.0",
+    "react-router-dom": "^7.15.0",
+    "three": "^0.184.0"
+  }
+}
