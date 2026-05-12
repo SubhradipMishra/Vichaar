@@ -44,7 +44,7 @@ const BlogSchema = new Schema<IBlog>({
     },
     status: {
         type: String,
-        enum: ["draft", "published", "archived"],
+        enum: ["draft", "pending", "published", "rejected", "archived"],
         default: "draft",
     },
     views: {

@@ -31,6 +31,7 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -73,14 +74,15 @@ body {
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white text-sm;
-    background: linear-gradient(135deg, #6241fe 0%, #7c3aed 100%);
-    box-shadow: 0 4px 20px rgba(98, 65, 254, 0.35);
-    transition: all 0.3s ease;
+    @apply inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl font-bold text-white text-[11px] uppercase tracking-widest;
+    background: #6241fe;
+    box-shadow: 0 8px 20px rgba(98, 65, 254, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(98, 65, 254, 0.5);
+    background: #5131e8;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 25px rgba(98, 65, 254, 0.3);
   }
 
   .btn-secondary {
@@ -167,6 +169,17 @@ body {
 
   .noise-bg {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 

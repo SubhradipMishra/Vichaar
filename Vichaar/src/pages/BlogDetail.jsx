@@ -4,11 +4,14 @@ import { motion } from 'framer-motion'
 import { 
     ClockCircleOutlined, 
     ArrowLeftOutlined, 
-    HeartOutlined, 
+    HeartOutlined, HeartFilled,
     MessageOutlined, 
     ShareAltOutlined,
     UserOutlined,
-    TagOutlined
+    TagOutlined,
+    EyeOutlined,
+    LikeOutlined,
+    FireOutlined
 } from '@ant-design/icons'
 import API from '../api/api'
 import Navbar from '../components/Navbar'
@@ -26,11 +29,44 @@ export default function BlogDetail() {
             const { data } = await API.get(`/blog/${blogId}`)
             if (data.success) {
                 setBlog(data.blog)
+                // Increment view after fetch
+                API.patch(`/blog/${blogId}/view`).catch(err => console.error("Error incrementing view:", err));
             }
         } catch (error) {
             console.error("Error fetching blog:", error)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleLike = async () => {
+        try {
+            const { data } = await API.patch(`/blog/${blogId}/like`)
+            if (data.success) {
+                setBlog(prev => ({ ...prev, likes: data.likes }))
+            }
+        } catch (error) {
+            console.error("Error liking blog:", error)
+        }
+    }
+
+    const handleShare = async () => {
+        const shareUrl = window.location.href
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: blog?.title || 'Vichaar post',
+                    text: blog?.excerpt || 'Check out this Vichaar article.',
+                    url: shareUrl,
+                })
+                return
+            }
+
+            await navigator.clipboard.writeText(shareUrl)
+            window.alert('Article link copied to clipboard.')
+        } catch (error) {
+            console.error('Error sharing blog:', error)
         }
     }
 
@@ -91,9 +127,14 @@ export default function BlogDetail() {
                             <p className="font-bold text-gray-900 m-0 capitalize">{blog.author?.name || 'Vichaar Writer'}</p>
                             <p className="text-xs text-gray-500 m-0">{new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
-                        <div className="ml-auto hidden sm:flex gap-2">
-                             <button className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border-none cursor-pointer hover:bg-purple-50 text-gray-400 hover:text-primary-600 transition-all"><HeartOutlined /></button>
-                             <button className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border-none cursor-pointer hover:bg-purple-50 text-gray-400 hover:text-primary-600 transition-all"><ShareAltOutlined /></button>
+                        <div className="ml-auto hidden sm:flex gap-3">
+                             <div className="flex items-center gap-4 mr-4 text-xs font-bold text-gray-400 uppercase tracking-widest border-r border-purple-50 pr-4">
+                                <span className="flex items-center gap-1.5"><EyeOutlined className="text-primary-500" /> {blog.views || 0}</span>
+                                <span className="flex items-center gap-1.5"><LikeOutlined className="text-primary-500" /> {blog.likes || 0}</span>
+                                <span className="flex items-center gap-1.5"><MessageOutlined className="text-primary-500" /> {blog.commentsCount || 0}</span>
+                             </div>
+                             <button onClick={handleLike} className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center border-none cursor-pointer hover:bg-primary-600 text-primary-600 hover:text-white transition-all shadow-sm"><HeartFilled /></button>
+                             <button onClick={handleShare} className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center border-none cursor-pointer hover:bg-purple-50 text-gray-400 hover:text-primary-600 transition-all shadow-sm"><ShareAltOutlined /></button>
                         </div>
                     </div>
                 </div>
@@ -162,6 +203,7 @@ export default function BlogDetail() {
                 .blog-content li { margin-bottom: 0.5rem; }
                 .blog-content strong { color: #111827; font-weight: 700; }
                 .blog-content blockquote { border-left: 4px solid #6241fe; padding-left: 1.5rem; font-style: italic; color: #4b5563; margin: 2rem 0; }
+                .blog-content img { max-width: 100%; height: auto; border-radius: 2rem; margin: 2.5rem 0; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #f0eeff; display: block; margin-left: auto; margin-right: auto; }
             `}</style>
         </div>
     )

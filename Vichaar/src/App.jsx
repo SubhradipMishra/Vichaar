@@ -5,6 +5,7 @@ import BlogPage from './pages/BlogPage'
 import WritePage from './pages/WritePage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
 import BlogDetail from './pages/BlogDetail'
 import Context from './util/context'
 import API from './api/api'
@@ -46,6 +47,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<LoginPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/blog/:blogId" element={<BlogDetail />} />
         </Routes>
       </Router>

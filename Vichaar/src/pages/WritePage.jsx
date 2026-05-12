@@ -7,6 +7,7 @@ import {
   CloseOutlined, PictureOutlined, TagsOutlined,
   AppstoreOutlined, InfoCircleOutlined
 } from '@ant-design/icons'
+import { message } from 'antd'
 import API from '../api/api'
 import Context from '../util/context'
 import TiptapEditor from '../components/TiptapEditor'
@@ -16,6 +17,7 @@ const categories = ['AI Writing', 'Technology', 'SEO Tips', 'Productivity', 'Cas
 export default function WritePage() {
   const { session, sessionLoading } = useContext(Context)
   const navigate = useNavigate()
+  const draftStorageKey = session?.id ? `vichaar-draft:${session.id}` : 'vichaar-draft:guest'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -24,6 +26,7 @@ export default function WritePage() {
   const [tags, setTags] = useState([])
   const [tagInput, setTagInput] = useState('')
   const [isPremium, setIsPremium] = useState(false)
+  const [readingTime, setReadingTime] = useState(5)
 
   const [thumbnil, setThumbnil] = useState(null)
   const [thumbnilPreview, setThumbnilPreview] = useState(null)
@@ -36,6 +39,26 @@ export default function WritePage() {
     if (!session && !sessionLoading) navigate('/login')
     console.log(session);
   }, [session, navigate, sessionLoading])
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(draftStorageKey)
+
+    if (!savedDraft) return
+
+    try {
+      const draft = JSON.parse(savedDraft)
+      setTitle(draft.title || '')
+      setContent(draft.content || '')
+      setExcerpt(draft.excerpt || '')
+      setCategory(draft.category || categories[0])
+      setTags(draft.tags || [])
+      setIsPremium(Boolean(draft.isPremium))
+      setReadingTime(draft.readingTime || 5)
+      message.info('Recovered your last saved draft.')
+    } catch (error) {
+      console.error('Failed to parse saved draft:', error)
+    }
+  }, [draftStorageKey])
 
   const handleThumbnilChange = (e) => {
     const file = e.target.files[0]
@@ -58,7 +81,21 @@ export default function WritePage() {
 
   const removeTag = (t) => setTags(tags.filter(x => x !== t))
 
-  const handlePublish = async () => {
+
+  const handleGenerateSummary = () => {
+    const plainText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+
+    if (!plainText) {
+      message.warning('Add some content first so I can create a summary.')
+      return
+    }
+
+    const generatedSummary = plainText.slice(0, 180).trim()
+    setExcerpt(generatedSummary.endsWith('.') ? generatedSummary : `${generatedSummary}...`)
+    message.success('Summary added to the excerpt field.')
+  }
+
+  const handleSubmit = async () => {
     // Check if content has actual text (ignoring HTML tags)
     const hasContent = content.replace(/<[^>]*>/g, '').trim().length > 0;
 
@@ -87,12 +124,13 @@ export default function WritePage() {
       formData.append('content', content)
       formData.append('excerpt', excerpt)
       formData.append('category', category)
-      formData.append('status', 'published')
+      formData.append('status', 'pending')
       formData.append('tags', JSON.stringify(tags))
       formData.append('isPremium', isPremium)
       formData.append('seoTitle', title)
       formData.append('seoDescription', excerpt)
       formData.append('aiSummary', excerpt)
+      formData.append('readingTime', readingTime)
 
       if (thumbnil) formData.append('thumbnil', thumbnil)
       images.forEach(img => formData.append('images', img))
@@ -102,13 +140,56 @@ export default function WritePage() {
       })
 
       if (data.success) {
+        localStorage.removeItem(draftStorageKey)
         setPublished(true)
       }
     } catch (error) {
-      console.error("Publishing failed:", error)
-      alert(error.response?.data?.message || "Failed to publish blog")
+      console.error("Submission failed:", error)
+      alert(error.response?.data?.message || "Failed to submit blog")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveDraft = async () => {
+    if (!title) {
+        message.warning("Add a title to save your draft to the cloud.");
+        return;
+    }
+
+    try {
+        setLoading(true);
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('slug', title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''));
+        formData.append('content', content);
+        formData.append('excerpt', excerpt || "Draft post...");
+        formData.append('category', category);
+        formData.append('status', 'draft');
+        formData.append('tags', JSON.stringify(tags));
+        formData.append('isPremium', isPremium);
+        formData.append('seoTitle', title);
+        formData.append('seoDescription', excerpt || "Draft post...");
+        formData.append('aiSummary', excerpt || "Draft post...");
+        formData.append('readingTime', readingTime);
+
+        if (thumbnil) formData.append('thumbnil', thumbnil);
+
+        await API.post('/blog/create', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        localStorage.setItem(
+          draftStorageKey,
+          JSON.stringify({ title, content, excerpt, category, tags, isPremium, readingTime }),
+        );
+
+        message.success('Draft saved to your workspace.');
+    } catch (error) {
+        console.error("Draft saving failed:", error);
+        message.error("Failed to save draft to cloud.");
+    } finally {
+        setLoading(false);
     }
   }
 
@@ -116,11 +197,11 @@ export default function WritePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fcfcfe]">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center p-12 max-w-md">
-          <div className="text-8xl mb-6">🚀</div>
-          <h2 className="text-3xl font-black text-gray-900 mb-3">Post Published!</h2>
-          <p className="text-gray-500 mb-8">Your masterpiece is now live and being synced across the universe.</p>
+          <div className="text-8xl mb-6">📡</div>
+          <h2 className="text-3xl font-black text-gray-900 mb-3">Post Submitted!</h2>
+          <p className="text-gray-500 mb-8">Your masterpiece has been sent to our editors for review. You'll receive an email once it's approved.</p>
           <div className="flex flex-col gap-3">
-            <button onClick={() => navigate('/blog')} className="btn-primary justify-center">View on Blog</button>
+            <button onClick={() => navigate('/dashboard')} className="btn-primary justify-center">Go to Dashboard</button>
             <button onClick={() => setPublished(false)} className="btn-secondary justify-center">Write Another</button>
           </div>
         </motion.div>
@@ -141,16 +222,21 @@ export default function WritePage() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <button className="hidden md:flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-primary-600 transition-all border-none bg-transparent cursor-pointer">
-              <SaveOutlined /> Save Draft
+            <button 
+                onClick={handleSaveDraft} 
+                disabled={loading}
+                className="hidden md:flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-primary-600 transition-all border-none bg-transparent cursor-pointer disabled:opacity-50" 
+                type="button"
+            >
+              <SaveOutlined /> {loading ? 'Saving...' : 'Save Draft'}
             </button>
             <motion.button
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              onClick={handlePublish}
+              onClick={handleSubmit}
               disabled={loading}
               className="btn-primary text-xs px-6 py-2.5 shadow-xl shadow-primary-500/20"
             >
-              {loading ? 'Publishing...' : <><SendOutlined /> Publish Post</>}
+              {loading ? 'Submitting...' : <><SendOutlined /> Submit for Review</>}
             </motion.button>
           </div>
         </div>
@@ -219,6 +305,17 @@ export default function WritePage() {
               </div>
 
               <div>
+                <label className="text-xs font-bold text-gray-900 block mb-2">Estimated Reading Time (min)</label>
+                <input
+                  type="number"
+                  value={readingTime}
+                  onChange={e => setReadingTime(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-gray-50 border-none text-xs font-bold text-gray-600 outline-none"
+                  min="1"
+                />
+              </div>
+
+              <div>
                 <label className="text-xs font-bold text-gray-900 block mb-2">Tags</label>
                 <div className="flex gap-2 mb-3 flex-wrap">
                   {tags.map(t => (
@@ -268,7 +365,7 @@ export default function WritePage() {
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             </div>
             <p className="text-[11px] text-white/70 leading-relaxed mb-4">I can help you expand your ideas, fix grammar, or optimize this post for SEO.</p>
-            <button className="w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-bold border-none text-white cursor-pointer transition-all">
+            <button onClick={handleGenerateSummary} className="w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-bold border-none text-white cursor-pointer transition-all" type="button">
               <ThunderboltOutlined /> Generate AI Summary
             </button>
           </div>

@@ -7,6 +7,7 @@ import { useContext } from 'react'
 import * as THREE from 'three'
 import Context from '../util/context'
 import API from '../api/api'
+import { DASHBOARD_ROUTE } from '../util/site'
 
 // Reuse mini Three.js particles on login bg
 function BgCanvas() {
@@ -92,8 +93,7 @@ export default function LoginPage() {
           message.success('Logged in successfully!')
           console.log(data)
           setSession(data.user)
-
-          // navigate('/')
+          navigate(DASHBOARD_ROUTE)
         } else {
           message.error(data.message || 'Login failed')
         }
@@ -112,7 +112,7 @@ export default function LoginPage() {
           if (data.success) {
             message.success('Account created successfully!')
             setSession(data.user)
-            navigate('/')
+            navigate(DASHBOARD_ROUTE)
           } else {
             message.error(data.message || 'Verification failed')
           }

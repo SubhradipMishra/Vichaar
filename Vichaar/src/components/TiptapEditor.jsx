@@ -29,6 +29,15 @@ const MenuBar = ({ editor }) => {
     { icon: <UnorderedListOutlined />, action: () => editor.chain().focus().toggleBulletList().run(), active: 'bulletList', title: 'Bullet List' },
     { icon: <OrderedListOutlined />, action: () => editor.chain().focus().toggleOrderedList().run(), active: 'orderedList', title: 'Ordered List' },
     { type: 'divider' },
+    { 
+      icon: <PictureOutlined />, 
+      action: () => {
+        const url = window.prompt('Enter Image URL')
+        if (url) editor.chain().focus().setImage({ src: url }).run()
+      }, 
+      title: 'Insert Image' 
+    },
+    { type: 'divider' },
     { icon: <UndoOutlined />, action: () => editor.chain().focus().undo().run(), title: 'Undo' },
     { icon: <RedoOutlined />, action: () => editor.chain().focus().redo().run(), title: 'Redo' },
   ]
@@ -43,7 +52,7 @@ const MenuBar = ({ editor }) => {
             key={i}
             onClick={item.action}
             title={item.title}
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer ${
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer flex-shrink-0 ${
               editor.isActive(item.active) ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'text-gray-400 hover:bg-purple-50 hover:text-primary-600'
             }`}
           >
@@ -59,7 +68,13 @@ const extensions = [
   StarterKit,
   Underline,
   Link.configure({ openOnClick: false }),
-  Image,
+  Image.configure({
+    inline: true,
+    allowBase64: true,
+    HTMLAttributes: {
+      class: 'rounded-3xl border border-purple-100 shadow-lg my-8 mx-auto block max-w-full h-auto',
+    },
+  }),
   Placeholder.configure({
     placeholder: 'The universe is waiting for your story... Start writing here ✨',
   }),
