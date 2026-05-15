@@ -1,7 +1,6 @@
-
 import { Router } from "express";
-import { createBlog, deleteBlog, getAllBlog, getBlogByCategory, getBlogById, getBlogByAuthor, getIsPremium, updateBlog, incrementViews, likeBlog, getDashboardStats, submitForReview, adminUpdateStatus, getAdminQueue } from "./blog.controller";
-import { userAdminGuard, AdminGaurd } from "../middleware/auth.middleware";
+import { createBlog, deleteBlog, getAllBlog, getBlogByCategory, getBlogById, getBlogByAuthor, getIsPremium, updateBlog, incrementViews, likeBlog, getDashboardStats, submitForReview, adminUpdateStatus, getAdminQueue, toggleSaveBlog, getSavedBlogs } from "./blog.controller";
+import { userAdminGuard, AdminGaurd, authMiddleware } from "../middleware/auth.middleware";
 import { upload } from "../middleware/multer.middleware";
 
 
@@ -30,5 +29,7 @@ BlogRouter.delete("/delete/:blogId", userAdminGuard, deleteBlog)
 BlogRouter.get("/user/stats", userAdminGuard, getDashboardStats)
 BlogRouter.patch("/:blogId/view", incrementViews)
 BlogRouter.patch("/:blogId/like", likeBlog)
+BlogRouter.post("/:blogId/save", authMiddleware, toggleSaveBlog)
+BlogRouter.get("/user/saved", authMiddleware, getSavedBlogs)
 
 export default BlogRouter;

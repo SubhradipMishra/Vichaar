@@ -14,6 +14,7 @@ export interface IBlog extends Document {
     status: string;
     views?: number;
     likes: number;
+    dislikes: number;
     bookmarks: Types.ObjectId[];
     readingTime?: number;
     commentsCount: number;

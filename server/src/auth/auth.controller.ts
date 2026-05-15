@@ -1,5 +1,6 @@
 
 import AuthModel from "./auth.model";
+import BlogModel from "../blog/blog.model";
 import { Response, Request } from "express";
 import bcrypt from "bcrypt"
 import { IAuth } from "./auth.interface";
@@ -70,6 +71,7 @@ export const signup = async (req: Request, res: Response) => {
 
         const userResponse = newUser.toObject();
         delete (userResponse as any).password;
+        (userResponse as any).id = newUser._id;
 
         return res.status(201).json({ success: true, message: "User created and logged in successfully", user: userResponse, token });
     }
@@ -114,6 +116,7 @@ export const Login = async (req: Request, res: Response) => {
 
         const userResponse = userFound.toObject();
         delete (userResponse as any).password;
+        (userResponse as any).id = userFound._id;
 
         return res.status(200).json({
             success: true,
@@ -157,7 +160,13 @@ export const getMe = async (req: any, res: Response) => {
 
 export const getSession = async (req: any, res: Response) => {
     try {
-        return res.status(200).json({ success: true, user: req.user });
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+        const user = await AuthModel.findById(userId).select("-password");
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        return res.status(200).json({ success: true, user });
     } catch (error: any) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -216,5 +225,69 @@ export const resetPassword = async (req: Request, res: Response) => {
     } catch (err: any) {
         console.error("Error in resetPassword:", err);
         return res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+    }
+}
+
+export const toggleFollowUser = async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const { targetUserId } = req.params;
+
+        if (userId === targetUserId) {
+            return res.status(400).json({ success: false, message: "You cannot follow yourself" });
+        }
+
+        const user = await AuthModel.findById(userId);
+        const targetUser = await AuthModel.findById(targetUserId);
+
+        if (!user || !targetUser) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isFollowing = user.following.includes(targetUserId as any);
+
+        if (isFollowing) {
+            user.following = user.following.filter(id => id.toString() !== targetUserId);
+            targetUser.followers = targetUser.followers.filter(id => id.toString() !== userId);
+            await user.save();
+            await targetUser.save();
+            return res.status(200).json({ success: true, message: "Unfollowed successfully", isFollowing: false });
+        } else {
+            user.following.push(targetUserId as any);
+            targetUser.followers.push(userId as any);
+            await user.save();
+            await targetUser.save();
+            return res.status(200).json({ success: true, message: "Followed successfully", isFollowing: true });
+        }
+    } catch (error) {
+        console.error("Error in toggleFollowUser:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+export const getPublicProfile = async (req: Request, res: Response) => {
+    try {
+        const { userId } = req.params;
+        const user = await AuthModel.findById(userId).select("-password -email -mobileNumber");
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const blogs = await BlogModel.find({ author: userId, status: "published" }).sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            user,
+            blogs,
+            stats: {
+                followers: user.followers.length,
+                following: user.following.length,
+                totalBlogs: blogs.length
+            }
+        });
+    } catch (error) {
+        console.error("Error in getPublicProfile:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

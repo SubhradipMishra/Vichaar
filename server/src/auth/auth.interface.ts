@@ -12,5 +12,11 @@ export interface IAuth extends Document {
     profileImage?: string;
     bio?: string;
     role: "user" | "admin" | "superadmin";
-
+    isPremium: boolean;
+    subscriptionPlan?: "1_month" | "6_months" | "12_months";
+    subscriptionStartDate?: Date;
+    subscriptionEndDate?: Date;
+    savedPosts: Types.ObjectId[];
+    followers: Types.ObjectId[];
+    following: Types.ObjectId[];
 }

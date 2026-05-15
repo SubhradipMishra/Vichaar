@@ -7,6 +7,8 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import BlogDetail from './pages/BlogDetail'
+import PricingPage from './pages/PricingPage'
+import ProfilePage from './pages/ProfilePage'
 import Context from './util/context'
 import API from './api/api'
 
@@ -49,6 +51,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/blog/:blogId" element={<BlogDetail />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
         </Routes>
       </Router>
     </Context.Provider>

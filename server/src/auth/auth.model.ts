@@ -49,6 +49,38 @@ const AuthSchema = new Schema<IAuth>(
             enum: ["user", "admin", "superadmin"],
             default: "user",
         },
+        isPremium: {
+            type: Boolean,
+            default: false,
+        },
+        subscriptionPlan: {
+            type: String,
+            enum: ["1_month", "6_months", "12_months"],
+        },
+        subscriptionStartDate: {
+            type: Date,
+        },
+        subscriptionEndDate: {
+            type: Date,
+        },
+        savedPosts: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Blog",
+            },
+        ],
+        followers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Auth",
+            },
+        ],
+        following: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Auth",
+            },
+        ],
     },
     {
         timestamps: true,

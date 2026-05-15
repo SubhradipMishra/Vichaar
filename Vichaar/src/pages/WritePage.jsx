@@ -17,7 +17,8 @@ const categories = ['AI Writing', 'Technology', 'SEO Tips', 'Productivity', 'Cas
 export default function WritePage() {
   const { session, sessionLoading } = useContext(Context)
   const navigate = useNavigate()
-  const draftStorageKey = session?.id ? `vichaar-draft:${session.id}` : 'vichaar-draft:guest'
+  const userId = session?.id || session?._id;
+  const draftStorageKey = userId ? `vichaar-draft:${userId}` : 'vichaar-draft:guest'
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -110,7 +111,7 @@ export default function WritePage() {
       return
     }
 
-    if (!session?.id && !sessionLoading) {
+    if (!userId && !sessionLoading) {
       alert("Session expired. Please login again.");
       navigate('/login');
       return;
@@ -357,7 +358,17 @@ export default function WritePage() {
           </div>
 
           {/* AI Panel */}
-          <div className="bg-gradient-to-br from-primary-600 to-purple-700 rounded-[32px] p-6 text-white shadow-xl">
+          <div className={`relative bg-gradient-to-br from-primary-600 to-purple-700 rounded-[32px] p-6 text-white shadow-xl overflow-hidden group ${!session?.isPremium ? 'grayscale' : ''}`}>
+            {!session?.isPremium && (
+                <div className="absolute inset-0 z-20 bg-gray-900/40 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                    <RobotOutlined className="text-4xl mb-4" />
+                    <h5 className="text-sm font-black mb-2 uppercase tracking-tight">AI Assistant is Pro</h5>
+                    <Link to="/pricing" className="text-[10px] font-black text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-2 rounded-xl no-underline shadow-lg transition-all">
+                        Upgrade Now
+                    </Link>
+                </div>
+            )}
+            
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-xs font-black flex items-center gap-2">
                 <RobotOutlined /> AI ASSISTANT

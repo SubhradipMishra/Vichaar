@@ -37,6 +37,7 @@ const API_BASE = 'http://localhost:7070'
 function AnimatedBackground() {
   const meshRef = useRef()
 
+
   useFrame((state) => {
     if (meshRef.current) {
       meshRef.current.rotation.x = state.clock.getElapsedTime() * 0.05
@@ -171,6 +172,39 @@ function SidebarContent({
           <QuestionCircleOutlined className={`text-lg ${activeTab === 'help' ? 'text-primary-600' : 'text-gray-400'}`} />
           {isExpanded && <span className="font-bold text-sm">Help Center</span>}
         </button>
+
+        {isExpanded && !session.isPremium && (
+          <div className="mt-6 mx-3 p-5 rounded-[24px] bg-gradient-to-br from-gray-900 to-gray-800 border border-white/5 relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center mb-3">
+                <ThunderboltOutlined className="text-indigo-400" />
+              </div>
+              <h4 className="text-sm font-black text-white tracking-tight">Upgrade to Pro</h4>
+              <p className="text-[10px] text-gray-400 font-medium mt-1 mb-4 leading-relaxed">
+                Unlock AI assistance, premium blogs, and smart analytics.
+              </p>
+              <Link 
+                to="/pricing" 
+                className="block w-full py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black rounded-xl text-center transition-all no-underline shadow-lg shadow-indigo-500/20"
+              >
+                Go Premium
+              </Link>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+          </div>
+        )}
+
+        {isExpanded && session.isPremium && (
+          <div className="mt-6 mx-3 p-4 rounded-[24px] bg-indigo-50/50 border border-indigo-100 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+              <ThunderboltOutlined className="text-white text-xs" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Premium Member</p>
+              <p className="text-[9px] text-indigo-400 font-bold truncate">Pro features active</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="px-3 pb-4 space-y-1">
@@ -234,9 +268,33 @@ export default function DashboardPage() {
   const [adminQueue, setAdminQueue] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [savedBlogs, setSavedBlogs] = useState([])
+  const [savedLoading, setSavedLoading] = useState(false)
 
   const containerRef = useRef(null)
   const updatesRef = useRef(null)
+
+  const fetchSavedBlogs = async () => {
+    try {
+      setSavedLoading(true)
+      const { data } = await API.get('/blog/user/saved')
+      if (data.success) {
+        setSavedBlogs(data.blogs)
+      }
+    } catch (error) {
+      console.error("Error fetching saved blogs:", error)
+    } finally {
+      setSavedLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'bookmarks') {
+      fetchSavedBlogs()
+    }
+  }, [activeTab])
 
   const fetchDashboardData = async () => {
     try {
@@ -253,6 +311,12 @@ export default function DashboardPage() {
         if (adminData.data.success) {
             setAdminQueue(adminData.data.blogs)
         }
+      }
+      
+      const notifData = await API.get('/notifications')
+      if (notifData.data.success) {
+        setNotifications(notifData.data.notifications)
+        setUnreadCount(notifData.data.unreadCount)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -394,13 +458,23 @@ export default function DashboardPage() {
     }
   }
 
-  const handleNotificationsClick = () => {
+  const handleNotificationsClick = async () => {
     setActiveTab('overview')
     closeMobileSidebar()
 
     window.requestAnimationFrame(() => {
       updatesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
+
+    if (unreadCount > 0) {
+      try {
+        await API.patch('/notifications/all/read')
+        setUnreadCount(0)
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+      } catch (err) {
+        console.error("Error marking as read", err)
+      }
+    }
   }
 
   if (sessionLoading || !session) {
@@ -520,10 +594,15 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={handleNotificationsClick}
-                  className="w-11 h-11 rounded-2xl bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all text-lg cursor-pointer shadow-sm text-gray-400"
+                  className="w-11 h-11 rounded-2xl bg-white border border-gray-100 flex items-center justify-center hover:bg-gray-50 transition-all text-lg cursor-pointer shadow-sm text-gray-400 relative"
                   type="button"
                 >
                   <BellOutlined />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
                 <Link to="/write" className="hidden lg:inline-flex btn-primary no-underline text-[11px] px-6 py-3.5 items-center gap-2">
                   <PlusOutlined />
@@ -591,27 +670,49 @@ export default function DashboardPage() {
                   <div ref={updatesRef} className="stagger-item bg-white border border-gray-100 p-7 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     <h3 className="text-sm font-black text-gray-900 mb-6 tracking-tight flex items-center gap-2">
                       <ThunderboltOutlined className="text-primary-600" />
-                      Recent Updates
+                      Notifications
                     </h3>
-                    <div className="space-y-6">
-                      {activity.length > 0 ? activity.map((item, index) => (
+                    <div className="space-y-6 max-h-[400px] overflow-y-auto no-scrollbar">
+                      {notifications.length > 0 ? notifications.map((item, index) => (
                         <button
-                          key={`${item.id}-${index}`}
-                          onClick={() => item.id && navigate(`/blog/${item.id}`)}
-                          className="w-full flex items-start gap-4 group cursor-pointer border-none bg-transparent text-left"
+                          key={`${item._id}-${index}`}
+                          onClick={() => item.blog?._id && navigate(`/blog/${item.blog._id}`)}
+                          className={`w-full flex items-start gap-4 group cursor-pointer border-none bg-transparent text-left p-3 rounded-2xl transition-all duration-300 hover:bg-gray-50/80 ${!item.isRead ? 'bg-primary-50/40' : ''}`}
                           type="button"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex-shrink-0 flex items-center justify-center text-gray-400 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-                            <ClockCircleOutlined className="text-xs" />
+                          <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-base transition-transform group-hover:scale-110 shadow-sm ${
+                            item.type === 'like' ? 'bg-pink-50 text-pink-600' :
+                            item.type === 'dislike' ? 'bg-orange-50 text-orange-600' :
+                            item.type === 'comment' || item.type === 'reply' ? 'bg-blue-50 text-blue-600' :
+                            item.type === 'status_update' ? 'bg-emerald-50 text-emerald-600' :
+                            'bg-gray-50 text-gray-600'
+                          }`}>
+                            {item.type === 'like' ? <HeartOutlined /> : 
+                             item.type === 'dislike' ? <ThunderboltOutlined /> : 
+                             item.type === 'comment' || item.type === 'reply' ? <MessageOutlined /> : 
+                             item.type === 'status_update' ? <ThunderboltOutlined /> :
+                             <BellOutlined />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{item.type}</p>
-                            <p className="text-xs text-gray-900 font-bold truncate mt-0.5 group-hover:text-primary-600 transition-colors">{item.title}</p>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em]">
+                                  {item.type.replace('_', ' ')}
+                                </span>
+                                {!item.isRead && <div className="w-1.5 h-1.5 rounded-full bg-primary-600 animate-pulse" />}
+                              </div>
+                              <span className="text-[10px] font-bold text-gray-400">
+                                {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric', year: 'numeric' })}
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-900 font-bold leading-relaxed line-clamp-2 group-hover:text-primary-600 transition-colors">
+                              {item.content}
+                            </p>
                           </div>
                         </button>
                       )) : (
                         <div className="text-center py-6">
-                          <p className="text-[10px] text-gray-300 font-black uppercase tracking-widest">Workspace is quiet</p>
+                          <p className="text-[10px] text-gray-300 font-black uppercase tracking-widest">No notifications yet</p>
                         </div>
                       )}
                     </div>
@@ -768,24 +869,82 @@ export default function DashboardPage() {
                     <Link to="/blog" className="btn-secondary no-underline text-xs justify-center">Browse articles</Link>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button onClick={() => navigate('/blog')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
-                      <BookOutlined className="text-primary-600 text-xl mb-4" />
-                      <h4 className="text-lg font-black text-gray-900 mb-2">Explore the public feed</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">Find stories to read while bookmarks are still empty.</p>
-                    </button>
+                  <div className="grid grid-cols-1 gap-4 mt-8">
+                    {savedLoading ? (
+                      <div className="flex items-center justify-center py-20">
+                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full" />
+                      </div>
+                    ) : savedBlogs.length > 0 ? (
+                      savedBlogs.map(post => (
+                        <div key={post._id} className="flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-[32px] bg-gray-50/60 border border-gray-100 group hover:border-primary-100 transition-all">
+                          <div className="w-full md:w-40 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100 shadow-sm">
+                             {post.thumbnil ? (
+                               <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center text-2xl">✨</div>
+                             )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-[10px] font-black text-primary-600 uppercase tracking-widest bg-primary-50 px-2 py-0.5 rounded-md">{post.category}</span>
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1"><ClockCircleOutlined /> {post.readingTime || 5} min</span>
+                            </div>
+                            <h4 className="text-xl font-black text-gray-900 truncate tracking-tight">{post.title}</h4>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-1 font-medium">by {post.author?.name || 'Vichaar Writer'}</p>
+                          </div>
+                          <div className="flex items-center gap-3 md:ml-auto">
+                            <button 
+                              onClick={() => navigate(`/blog/${post._id}`)}
+                              className="h-12 px-8 rounded-2xl bg-primary-600 text-white text-xs font-black hover:bg-primary-700 transition-all border-none cursor-pointer shadow-lg shadow-primary-600/20"
+                            >
+                              Read Now
+                            </button>
+                            <button 
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const { data } = await API.post(`/blog/${post._id}/save`);
+                                  if (data.success) {
+                                    message.success("Removed from bookmarks");
+                                    setSavedBlogs(prev => prev.filter(b => b._id !== post._id));
+                                    // Update context as well
+                                    if (session) {
+                                      const updated = session.savedPosts.filter(id => id !== post._id);
+                                      setSession({ ...session, savedPosts: updated });
+                                    }
+                                  }
+                                } catch (err) {
+                                  message.error("Action failed");
+                                }
+                              }}
+                              className="w-12 h-12 rounded-2xl bg-white border border-gray-100 text-red-500 hover:bg-red-50 hover:border-red-100 transition-all flex items-center justify-center cursor-pointer"
+                            >
+                              <DeleteOutlined />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button onClick={() => navigate('/blog')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
+                          <BookOutlined className="text-primary-600 text-xl mb-4" />
+                          <h4 className="text-lg font-black text-gray-900 mb-2">Explore the public feed</h4>
+                          <p className="text-sm text-gray-500 leading-relaxed">Find stories to read while bookmarks are still empty.</p>
+                        </button>
 
-                    <button onClick={() => navigate('/write')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
-                      <EditOutlined className="text-primary-600 text-xl mb-4" />
-                      <h4 className="text-lg font-black text-gray-900 mb-2">Start your next draft</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">Use this space as a quick launch point back into writing.</p>
-                    </button>
+                        <button onClick={() => navigate('/write')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
+                          <EditOutlined className="text-primary-600 text-xl mb-4" />
+                          <h4 className="text-lg font-black text-gray-900 mb-2">Start your next draft</h4>
+                          <p className="text-sm text-gray-500 leading-relaxed">Use this space as a quick launch point back into writing.</p>
+                        </button>
 
-                    <button onClick={() => setActiveTab('overview')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
-                      <DashboardOutlined className="text-primary-600 text-xl mb-4" />
-                      <h4 className="text-lg font-black text-gray-900 mb-2">Return to overview</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">Jump back to your latest stats, updates, and post performance.</p>
-                    </button>
+                        <button onClick={() => setActiveTab('overview')} className="p-6 rounded-[28px] bg-gray-50 border border-gray-100 text-left hover:border-primary-200 hover:bg-primary-50/40 transition-all" type="button">
+                          <DashboardOutlined className="text-primary-600 text-xl mb-4" />
+                          <h4 className="text-lg font-black text-gray-900 mb-2">Return to overview</h4>
+                          <p className="text-sm text-gray-500 leading-relaxed">Jump back to your latest stats, updates, and post performance.</p>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

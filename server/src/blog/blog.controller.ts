@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import redisClient from "../redisClient";
 import { sendPostStatusEmail } from "../utils/mail";
 import AuthModel from "../auth/auth.model";
+import NotificationModel from "../notifications/notification.model";
 
 export const createBlog = async (req: any, res: Response) => {
     try {
@@ -26,7 +27,9 @@ export const createBlog = async (req: any, res: Response) => {
 
         const user = await AuthModel.findById(authorId);
         if (user) {
-            await sendPostStatusEmail(user.email, user.name, blog.title, blog.status);
+            const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
+            const adminEmails = admins.map(a => a.email);
+            await sendPostStatusEmail(user.email, user.name, blog.title, blog.status, undefined, adminEmails);
         }
 
         // Invalidate all blogs cache
@@ -54,7 +57,9 @@ export const submitForReview = async (req: any, res: Response) => {
 
         const user = await AuthModel.findById(blog.author);
         if (user) {
-            await sendPostStatusEmail(user.email, user.name, blog.title, 'pending');
+            const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
+            const adminEmails = admins.map(a => a.email);
+            await sendPostStatusEmail(user.email, user.name, blog.title, 'pending', undefined, adminEmails);
         }
 
         await redisClient.del("blogs:all");
@@ -82,7 +87,19 @@ export const adminUpdateStatus = async (req: any, res: Response) => {
 
         const user = await AuthModel.findById(blog.author);
         if (user) {
-            await sendPostStatusEmail(user.email, user.name, blog.title, status, feedback);
+            const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
+            const adminEmails = admins.map(a => a.email);
+            
+            // Dashboard Notification
+            await NotificationModel.create({
+                recipient: user._id,
+                sender: req.user.id || req.user._id,
+                type: 'status_update',
+                blog: blogId,
+                content: `Your post "${blog.title}" has been ${status}${status === 'published' ? ' and is now live!' : '.'}`
+            });
+
+            await sendPostStatusEmail(user.email, user.name, blog.title, status, feedback, adminEmails);
         }
 
         await redisClient.del("blogs:all");
@@ -96,32 +113,65 @@ export const adminUpdateStatus = async (req: any, res: Response) => {
 
 export const getAllBlog = async (req: Request, res: Response) => {
     try {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 8;
+        const search = req.query.search as string;
+        const category = req.query.category as string;
+
+        // Construct query
+        let query: any = { status: "published" };
+
+        if (search) {
+            query.title = { $regex: search, $options: "i" };
+        }
+
+        if (category && category !== "All") {
+            query.category = category;
+        }
+
+        // Cache key based on query params
+        const cacheKey = `blogs:all:${page}:${limit}:${search || 'none'}:${category || 'all'}`;
+
         // Try to get from cache
         try {
             if (redisClient.isOpen) {
-                const cachedBlogs = await redisClient.get("blogs:all");
-                if (cachedBlogs) {
-                    return res.status(200).json({ success: true, message: "Blogs fetched from cache", blogs: JSON.parse(cachedBlogs) });
+                const cachedData = await redisClient.get(cacheKey);
+                if (cachedData) {
+                    return res.status(200).json({ success: true, message: "Blogs fetched from cache", ...JSON.parse(cachedData) });
                 }
             }
         } catch (redisError) {
             console.error("Redis Get Error:", redisError);
         }
 
-        const blogs = await BlogModel.find({ status: "published" }).populate("author", "name email profileImage");
+        const totalDocs = await BlogModel.countDocuments(query);
+        const totalPages = Math.ceil(totalDocs / limit);
+        const skip = (page - 1) * limit;
 
-        if (!blogs || blogs.length === 0) {
-            return res.status(404).json({ success: false, message: "No blogs found" });
-        }
+        const blogs = await BlogModel.find(query)
+            .populate("author", "name email profileImage")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        // Set to cache for 1 hour
+        const responseData = {
+            blogs,
+            pagination: {
+                totalDocs,
+                totalPages,
+                currentPage: page,
+                limit
+            }
+        };
+
+        // Set to cache for 15 minutes (shorter for paginated/filtered results)
         try {
-            await redisClient.setEx("blogs:all", 3600, JSON.stringify(blogs));
+            await redisClient.setEx(cacheKey, 900, JSON.stringify(responseData));
         } catch (redisError) {
             console.error("Redis Set Error:", redisError);
         }
 
-        return res.status(200).json({ success: true, message: "Blogs fetched successfully", blogs });
+        return res.status(200).json({ success: true, message: "Blogs fetched successfully", ...responseData });
     } catch (error: any) {
         console.error("Error fetching all blogs:", error);
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
@@ -341,6 +391,48 @@ export const getDashboardStats = async (req: any, res: Response) => {
         });
     } catch (error) {
         console.error("Error fetching dashboard stats:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+export const toggleSaveBlog = async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const { blogId } = req.params;
+
+        const user = await AuthModel.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const isSaved = user.savedPosts.includes(blogId as any);
+
+        if (isSaved) {
+            user.savedPosts = user.savedPosts.filter(id => id.toString() !== blogId);
+            await user.save();
+            return res.status(200).json({ success: true, message: "Blog removed from bookmarks", isSaved: false });
+        } else {
+            user.savedPosts.push(blogId as any);
+            await user.save();
+            return res.status(200).json({ success: true, message: "Blog added to bookmarks", isSaved: true });
+        }
+    } catch (error) {
+        console.error("Error toggling save blog:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
+
+export const getSavedBlogs = async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        const user = await AuthModel.findById(userId).populate({
+            path: 'savedPosts',
+            populate: { path: 'author', select: 'name email profileImage' }
+        });
+
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        return res.status(200).json({ success: true, blogs: user.savedPosts });
+    } catch (error) {
+        console.error("Error fetching saved blogs:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }

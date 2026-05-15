@@ -17,6 +17,9 @@ redisClient.connect();
 
 import authRouter from "./auth/auth.route";
 import BlogRouter from "./blog/blog.route";
+import interactionRouter from "./interactions/interaction.route";
+import notificationRouter from "./notifications/notification.route";
+import paymentRouter from "./payment/payment.route";
 
 const app = express();
 
@@ -31,8 +34,11 @@ app.use(cors({
 
 app.use("/uploads", express.static("uploads"));
 
+app.use("/api/payment", paymentRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/blog", BlogRouter);
+app.use("/api/interactions", interactionRouter);
+app.use("/api/notifications", notificationRouter);
 
 
 app.listen(process.env.PORT, () => {

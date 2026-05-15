@@ -6,6 +6,7 @@ import TrustedBy from '../components/TrustedBy'
 import Features from '../components/Features'
 import HowItWorks from '../components/HowItWorks'
 import Testimonials from '../components/Testimonials'
+import Pricing from '../components/Pricing'
 import CTA from '../components/CTA'
 import Footer from '../components/Footer'
 import { scrollToHash } from '../util/site'
@@ -34,6 +35,7 @@ export default function LandingPage() {
         <TrustedBy />
         <Features />
         <HowItWorks />
+        <Pricing />
         <Testimonials />
         <CTA />
       </main>

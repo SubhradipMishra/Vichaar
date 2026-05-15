@@ -84,7 +84,7 @@ export const sendForgotPasswordEmail = async (to: string, otp: string) => {
     return sendEmail(to, subject, text, html);
 };
 
-export const sendPostStatusEmail = async (userEmail: string, userName: string, postTitle: string, status: string, feedback?: string) => {
+export const sendPostStatusEmail = async (userEmail: string, userName: string, postTitle: string, status: string, feedback?: string, adminEmails?: string[]) => {
     const statusConfig: any = {
         pending: { label: 'Under Review', color: '#6241fe', icon: '📡', message: 'Your post is in the queue for review.' },
         published: { label: 'Live & Published', color: '#10b981', icon: '🚀', message: 'Congratulations! Your post is now live.' },
@@ -129,5 +129,47 @@ export const sendPostStatusEmail = async (userEmail: string, userName: string, p
         </div>
     `;
 
-    await sendEmail(process.env.SMTP_EMAIL!, `[ADMIN] Post Status Update: ${postTitle}`, `Status: ${status}`, adminHtml);
+    // Recipient list for admins
+    const recipients = adminEmails && adminEmails.length > 0 
+        ? adminEmails.join(', ') 
+        : (process.env.SUPPORT_EMAIL || process.env.SMTP_EMAIL!);
+
+    await sendEmail(recipients, `[ADMIN] Post Status Update: ${postTitle}`, `Status: ${status}`, adminHtml);
 };
+
+export const sendAuthorInteractionEmail = async (authorEmail: string, authorName: string, interacteeName: string, postTitle: string, type: 'like' | 'dislike' | 'comment' | 'reply', content?: string) => {
+    const config: any = {
+        like: { label: 'Liked your post', color: '#6241fe', icon: '❤️' },
+        dislike: { label: 'Disliked your post', color: '#ef4444', icon: '👎' },
+        comment: { label: 'Commented on your post', color: '#8b5cf6', icon: '💬' },
+        reply: { label: 'Replied to your comment', color: '#ec4899', icon: '↩️' }
+    };
+
+    const details = config[type];
+    const subject = `${interacteeName} ${details.label}: ${postTitle}`;
+
+    const html = `
+        <div style="background-color: #f8fafc; padding: 40px 20px; font-family: sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                <div style="background: ${details.color}; padding: 30px; text-align: center; color: white;">
+                    <div style="font-size: 40px;">${details.icon}</div>
+                    <h2 style="margin: 10px 0 0 0;">New Interaction</h2>
+                </div>
+                <div style="padding: 40px;">
+                    <p>Hi <strong>${authorName}</strong>,</p>
+                    <p><strong>${interacteeName}</strong> has just ${details.label.toLowerCase()} <strong>"${postTitle}"</strong>.</p>
+                    ${content ? `<div style="padding: 15px; background: #f1f5f9; border-radius: 12px; margin: 20px 0; color: #475569; font-style: italic;">"${content}"</div>` : ''}
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.FRONTEND_URL}/blog/${postTitle.toLowerCase().split(' ').join('-')}" style="display: inline-block; padding: 12px 30px; background: ${details.color}; color: white; text-decoration: none; border-radius: 12px; font-weight: bold;">View Article</a>
+                    </div>
+                </div>
+                <div style="background: #f8fafc; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    You are receiving this because you are the author of this post on Vichaar.
+                </div>
+            </div>
+        </div>
+    `;
+
+    return sendEmail(authorEmail, subject, `New interaction on your post: ${postTitle}`, html);
+};
+

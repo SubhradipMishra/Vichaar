@@ -55,6 +55,10 @@ const BlogSchema = new Schema<IBlog>({
         type: Number,
         default: 0,
     },
+    dislikes: {
+        type: Number,
+        default: 0,
+    },
     bookmarks: {
         type: [Types.ObjectId],
         default: [],
