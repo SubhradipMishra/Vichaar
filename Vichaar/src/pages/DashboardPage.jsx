@@ -31,6 +31,33 @@ import {
 import Context from '../util/context'
 import API from '../api/api'
 import { REPO_URL, SOCIAL_LINKS, SUPPORT_EMAIL } from '../util/site'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  Filler
+} from 'chart.js'
+import { Line, Doughnut } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 
 const API_BASE = 'http://localhost:7070'
 
@@ -628,30 +655,137 @@ export default function DashboardPage() {
                     </div>
                   ))}
 
-                  <div className="sm:col-span-2 xl:col-span-3 stagger-item bg-white border border-gray-100 p-6 sm:p-8 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                  <div className="sm:col-span-2 xl:col-span-3 stagger-item bg-white border border-gray-100 p-6 sm:p-8 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative overflow-hidden">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-                      <h3 className="text-lg font-black text-gray-900 tracking-tight">Engagement Pulse</h3>
+                      <div>
+                        <h3 className="text-lg font-black text-gray-900 tracking-tight">Growth Analytics</h3>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Views & Likes performance</p>
+                      </div>
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-xl border border-gray-100 w-fit">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Real-time</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Premium Insights</span>
                       </div>
                     </div>
-                    <div className="h-56 w-full flex items-end gap-2.5 px-1 overflow-x-auto no-scrollbar">
-                      {(stats?.chartData || [40, 70, 45, 90, 65, 80, 50, 75, 60, 85]).map((height, index) => (
-                        <motion.div
-                          key={`${height}-${index}`}
-                          initial={{ height: 0 }}
-                          animate={{ height: `${height}%` }}
-                          transition={{ delay: 0.1 + index * 0.03, duration: 0.8 }}
-                          className="min-w-[22px] flex-1 bg-primary-100 rounded-full relative group hover:bg-primary-600 transition-colors"
-                        >
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
-                            {height * 12}
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
+
+                    {!session.isPremium ? (
+                      <div className="relative">
+                        <div className="h-64 w-full bg-gray-50 rounded-2xl flex items-center justify-center border border-dashed border-gray-100 overflow-hidden">
+                           <div className="flex flex-col items-center text-center p-6 blur-[1px]">
+                              {(stats?.chartData || [40, 70, 45, 90, 65, 80, 50, 75, 60, 85]).map((height, index) => (
+                                <div key={index} className="w-8 bg-gray-100 rounded-t-lg mx-1" style={{ height: `${height}%` }} />
+                              ))}
+                           </div>
+                        </div>
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] flex flex-col items-center justify-center p-8 text-center rounded-2xl">
+                           <div className="w-12 h-12 rounded-2xl bg-gray-900 flex items-center justify-center mb-4 shadow-xl">
+                              <FireOutlined className="text-primary-400 text-xl" />
+                           </div>
+                           <h4 className="text-lg font-black text-gray-900 tracking-tight">Unlock Smart Analytics</h4>
+                           <p className="text-xs text-gray-500 font-medium mt-2 mb-6 max-w-[280px]">
+                              Get detailed insights into your audience growth and story performance with our Pro charts.
+                           </p>
+                           <Link to="/pricing" className="btn-primary no-underline text-[10px] px-8 py-3 rounded-xl shadow-lg shadow-primary-600/20">
+                              Upgrade to Unlock
+                           </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-64 w-full">
+                        <Line 
+                          data={{
+                            labels: stats?.monthlyStats ? Object.keys(stats.monthlyStats) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [
+                              {
+                                label: 'Views',
+                                data: stats?.monthlyStats ? Object.values(stats.monthlyStats).map(s => s.views) : [0, 0, 0, 0, 0, 0],
+                                borderColor: '#6241fe',
+                                backgroundColor: 'rgba(98, 65, 254, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#6241fe',
+                                pointBorderWidth: 2,
+                              },
+                              {
+                                label: 'Likes',
+                                data: stats?.monthlyStats ? Object.values(stats.monthlyStats).map(s => s.likes) : [0, 0, 0, 0, 0, 0],
+                                borderColor: '#ec4899',
+                                backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: '#ec4899',
+                                pointBorderWidth: 2,
+                              }
+                            ]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: { display: false },
+                              tooltip: {
+                                backgroundColor: '#111',
+                                padding: 12,
+                                titleFont: { size: 10, weight: 'bold' },
+                                bodyFont: { size: 10 },
+                                cornerRadius: 8,
+                                displayColors: true
+                              }
+                            },
+                            scales: {
+                              y: { beginAtZero: true, grid: { color: '#f1f1f1', drawBorder: false }, ticks: { font: { size: 10, weight: '600' }, color: '#999' } },
+                              x: { grid: { display: false }, ticks: { font: { size: 10, weight: '600' }, color: '#999' } }
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
+
+                  {session.isPremium && stats?.categoryBreakdown && (
+                    <div className="sm:col-span-2 xl:col-span-3 stagger-item bg-white border border-gray-100 p-8 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
+                       <h3 className="text-lg font-black text-gray-900 tracking-tight mb-8 text-center sm:text-left">Topic Distribution</h3>
+                       <div className="flex flex-col md:flex-row items-center gap-10">
+                          <div className="h-48 w-48 shrink-0">
+                            <Doughnut 
+                              data={{
+                                labels: Object.keys(stats.categoryBreakdown),
+                                datasets: [{
+                                  data: Object.values(stats.categoryBreakdown),
+                                  backgroundColor: ['#6241fe', '#a855f7', '#ec4899', '#f97316', '#10b981', '#3b82f6'],
+                                  borderWidth: 0,
+                                  hoverOffset: 10
+                                }]
+                              }}
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                  legend: { display: false }
+                                },
+                                cutout: '75%'
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 grid grid-cols-2 gap-4 w-full">
+                            {Object.entries(stats.categoryBreakdown).map(([cat, val], idx) => (
+                              <div key={cat} className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#6241fe', '#a855f7', '#ec4899', '#f97316', '#10b981', '#3b82f6'][idx % 6] }} />
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-black text-gray-900 uppercase tracking-wider truncate">{cat}</p>
+                                  <p className="text-[10px] text-gray-400 font-bold">{val} Views</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                       </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-6">

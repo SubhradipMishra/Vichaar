@@ -173,3 +173,63 @@ export const sendAuthorInteractionEmail = async (authorEmail: string, authorName
     return sendEmail(authorEmail, subject, `New interaction on your post: ${postTitle}`, html);
 };
 
+export const sendPaymentEmail = async (userEmail: string, userName: string, planName: string, amount: number, status: 'success' | 'failed', paymentId?: string) => {
+    const isSuccess = status === 'success';
+    const subject = isSuccess ? `Subscription Active: Welcome to Vichaar Pro! 🚀` : `Payment Failed: Action Required ⚠️`;
+    
+    const html = `
+        <div style="background-color: #f8fafc; padding: 40px 20px; font-family: 'Inter', sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 15px 45px rgba(0,0,0,0.06);">
+                <div style="background: ${isSuccess ? 'linear-gradient(135deg, #6241fe 0%, #8b5cf6 100%)' : '#ef4444'}; padding: 50px 30px; text-align: center; color: white;">
+                    <div style="font-size: 50px; margin-bottom: 15px;">${isSuccess ? '💎' : '❌'}</div>
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.5px;">${isSuccess ? 'Payment Successful' : 'Payment Failed'}</h1>
+                </div>
+                <div style="padding: 40px;">
+                    <p style="font-size: 16px; color: #1e293b; margin-bottom: 25px;">Hi <strong>${userName}</strong>,</p>
+                    <p style="font-size: 15px; color: #475569; line-height: 1.6;">
+                        ${isSuccess 
+                            ? `Great news! Your payment for the <strong>${planName.replace('_', ' ')}</strong> subscription has been processed successfully. You now have full access to all Vichaar Pro features.` 
+                            : `We couldn't process your payment for the <strong>${planName.replace('_', ' ')}</strong> plan. Please check your payment method and try again.`}
+                    </p>
+                    
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 25px; margin: 30px 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 5px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Plan</td>
+                                <td style="padding: 5px 0; color: #1e293b; font-size: 14px; font-weight: 700; text-align: right; text-transform: capitalize;">${planName.replace('_', ' ')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Amount Paid</td>
+                                <td style="padding: 5px 0; color: #1e293b; font-size: 14px; font-weight: 700; text-align: right;">₹${amount}</td>
+                            </tr>
+                            ${paymentId ? `
+                            <tr>
+                                <td style="padding: 5px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Payment ID</td>
+                                <td style="padding: 5px 0; color: #1e293b; font-size: 12px; font-weight: 600; text-align: right; font-family: monospace;">${paymentId}</td>
+                            </tr>` : ''}
+                            <tr>
+                                <td style="padding: 5px 0; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase;">Status</td>
+                                <td style="padding: 5px 0; color: ${isSuccess ? '#10b981' : '#ef4444'}; font-size: 13px; font-weight: 800; text-align: right; text-transform: uppercase;">${status}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="${process.env.FRONTEND_URL}/dashboard" style="display: inline-block; padding: 14px 35px; background: ${isSuccess ? '#6241fe' : '#ef4444'}; color: white; text-decoration: none; border-radius: 14px; font-weight: 800; font-size: 14px; transition: all 0.3s shadow-lg shadow-primary-600/20;">
+                            ${isSuccess ? 'Go to My Dashboard' : 'Try Again'}
+                        </a>
+                    </div>
+                </div>
+                <div style="background: #f1f5f9; padding: 25px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    Questions? Reply to this email or visit our <a href="${process.env.FRONTEND_URL}/help" style="color: #6241fe; text-decoration: none; font-weight: 700;">Help Center</a>.
+                    <br><br>
+                    &copy; 2026 Vichaar AI Platform. All rights reserved.
+                </div>
+            </div>
+        </div>
+    `;
+
+    return sendEmail(userEmail, subject, `Payment ${status} for ${planName}`, html);
+};
+
+

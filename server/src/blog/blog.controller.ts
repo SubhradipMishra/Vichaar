@@ -378,13 +378,30 @@ export const getDashboardStats = async (req: any, res: Response) => {
             time: b.createdAt
         }));
 
+        const categoryBreakdown = blogs.reduce((acc: any, blog) => {
+            const key = blog.category || 'Uncategorized';
+            acc[key] = (acc[key] || 0) + (blog.views || 0);
+            return acc;
+        }, {});
+
+        const monthlyStats = blogs.reduce((acc: any, blog) => {
+            const date = new Date(blog.createdAt);
+            const month = date.toLocaleString('default', { month: 'short' });
+            if (!acc[month]) acc[month] = { views: 0, likes: 0 };
+            acc[month].views += (blog.views || 0);
+            acc[month].likes += (blog.likes || 0);
+            return acc;
+        }, {});
+
         return res.status(200).json({
             success: true,
             stats: {
                 totalPosts,
                 totalViews,
                 totalLikes,
-                avgReadTime: "4m 12s"
+                avgReadTime: "4m 12s",
+                categoryBreakdown,
+                monthlyStats
             },
             recentActivity,
             blogs

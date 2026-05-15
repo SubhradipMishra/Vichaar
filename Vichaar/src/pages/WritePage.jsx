@@ -5,7 +5,7 @@ import {
   EditOutlined, HomeOutlined, SaveOutlined, EyeOutlined,
   SendOutlined, RobotOutlined, ThunderboltOutlined,
   CloseOutlined, PictureOutlined, TagsOutlined,
-  AppstoreOutlined, InfoCircleOutlined
+  AppstoreOutlined, InfoCircleOutlined, PlusOutlined
 } from '@ant-design/icons'
 import { message } from 'antd'
 import API from '../api/api'
@@ -94,6 +94,102 @@ export default function WritePage() {
     const generatedSummary = plainText.slice(0, 180).trim()
     setExcerpt(generatedSummary.endsWith('.') ? generatedSummary : `${generatedSummary}...`)
     message.success('Summary added to the excerpt field.')
+  }
+
+  const handleAIGenerateImage = async () => {
+    if (!title) return message.warning("Please enter a title first so I can visualize it!");
+    if (!session?.isPremium) return message.error("Premium feature! Please upgrade to use AI generation.");
+
+    try {
+      setLoading(true);
+      message.loading({ content: "Generating your masterpiece...", key: "ai-img" });
+      
+      const { data } = await API.post('/ai/image', { title });
+      if (data.success) {
+        setThumbnilPreview(data.imageUrl); // Show preview immediately from our local server
+        
+        try {
+            // Also fetch the blob so we can submit it as a file
+            const response = await fetch(data.imageUrl);
+            if (response.ok) {
+                const blob = await response.blob();
+                const file = new File([blob], 'ai-thumbnail.png', { type: 'image/png' });
+                setThumbnil(file);
+            }
+        } catch (fetchErr) {
+            console.warn("Failed to fetch blob, will use preview URL:", fetchErr);
+        }
+        
+        message.success({ content: "AI generated a unique cover for you!", key: "ai-img" });
+      }
+    } catch (error) {
+      console.error("AI Image error:", error);
+      message.error({ content: "Could not display AI image. Please try again.", key: "ai-img" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleAITextAction = async (action) => {
+    if (!session?.isPremium) return message.error("Premium feature! Please upgrade to use AI Assistant.");
+    
+    let prompt = "";
+    let systemPrompt = "You are a professional blogging assistant.";
+
+    if (action === 'expand') {
+        if (!content) return message.warning("Content is empty!");
+        prompt = `Expand this blog content while maintaining the style. Return the output as HTML: ${content.slice(0, 800)}`;
+        systemPrompt = "You are a professional writer. Expand the content significantly. Return ONLY valid HTML. Do not use <html> or <body> tags.";
+    } else if (action === 'seo') {
+        if (!title || !content) return message.warning("Enter title and content for SEO analysis!");
+        prompt = `Analyze this blog and provide SEO optimizations in JSON format: { "seoTitle": "...", "metaDescription": "...", "tags": ["tag1", "tag2", ...], "seoScore": 85, "suggestions": ["...", "..."] }. 
+        Title: ${title}
+        Content Snippet: ${content.replace(/<[^>]*>/g, '').slice(0, 800)}`;
+        systemPrompt = "You are an SEO expert. Return ONLY a valid JSON object. No extra text.";
+    } else if (action === 'rewrite') {
+        if (!content) return message.warning("Content is empty!");
+        prompt = `Rewrite this blog content to be more professional, engaging and viral. Return the output as HTML: ${content.slice(0, 800)}`;
+        systemPrompt = "You are a professional editor. Rewrite the content for maximum impact. Return ONLY valid HTML. Do not use <html> or <body> tags.";
+    }
+
+    try {
+      setLoading(true);
+      message.loading({ content: "Vichaar AI is thinking...", key: "ai-task" });
+      const { data } = await API.post('/ai/text', { prompt, systemPrompt });
+      if (data.success) {
+        if (action === 'seo') {
+            try {
+                let seoData;
+                if (typeof data.text === 'object') {
+                    seoData = data.text;
+                } else {
+                    // Try to clean potential markdown formatting
+                    const jsonStr = data.text.replace(/```json|```/g, '').trim();
+                    seoData = JSON.parse(jsonStr);
+                }
+                
+                if (seoData.tags) setTags([...new Set([...tags, ...seoData.tags])]);
+                if (seoData.metaDescription) setExcerpt(seoData.metaDescription);
+                if (seoData.seoTitle) setTitle(seoData.seoTitle);
+                
+                const scoreMsg = `SEO Grade: ${seoData.seoScore || 0}/100. ${seoData.suggestions?.[0] || 'Optimized!'}`;
+                message.success({ content: scoreMsg, key: "ai-task", duration: 5 });
+            } catch (e) {
+                console.error("SEO JSON Parse Error:", e, data.text);
+                const rawText = typeof data.text === 'object' ? JSON.stringify(data.text) : data.text;
+                message.info({ content: "SEO Advice: " + rawText.slice(0, 100) + "...", key: "ai-task", duration: 10 });
+            }
+        } else {
+            // Content actions (expand/rewrite)
+            setContent(data.text);
+            message.success({ content: "Content polished by AI!", key: "ai-task" });
+        }
+      }
+    } catch (error) {
+      message.error({ content: error.response?.data?.message || "AI Assistant is busy", key: "ai-task" });
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleSubmit = async () => {
@@ -257,14 +353,27 @@ export default function WritePage() {
             {/* Thumbnail Upload */}
             <div className="relative aspect-video rounded-[32px] bg-gray-50 border-2 border-dashed border-purple-100 flex flex-col items-center justify-center overflow-hidden group cursor-pointer hover:bg-purple-50 transition-all">
               {thumbnilPreview ? (
-                <img src={thumbnilPreview} className="w-full h-full object-cover" />
+                <div className="relative w-full h-full">
+                    <img src={thumbnilPreview} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <PictureOutlined className="text-white text-3xl" />
+                    </div>
+                </div>
               ) : (
                 <>
                   <PictureOutlined className="text-4xl text-purple-200 mb-2" />
                   <p className="text-[10px] font-black text-purple-300 uppercase tracking-widest">Upload Thumbnail</p>
                 </>
               )}
-              <input type="file" onChange={handleThumbnilChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+              <input type="file" onChange={handleThumbnilChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
+              {session?.isPremium && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); handleAIGenerateImage(); }}
+                    className="absolute bottom-4 right-4 z-20 px-4 py-2 bg-white/90 backdrop-blur shadow-xl rounded-xl text-[9px] font-black text-primary-600 border-none cursor-pointer flex items-center gap-2 hover:bg-primary-600 hover:text-white transition-all"
+                >
+                    <RobotOutlined /> AI GENERATE
+                </button>
+              )}
             </div>
 
             {/* Excerpt */}
@@ -376,9 +485,20 @@ export default function WritePage() {
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             </div>
             <p className="text-[11px] text-white/70 leading-relaxed mb-4">I can help you expand your ideas, fix grammar, or optimize this post for SEO.</p>
-            <button onClick={handleGenerateSummary} className="w-full py-3 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-xs font-bold border-none text-white cursor-pointer transition-all" type="button">
-              <ThunderboltOutlined /> Generate AI Summary
-            </button>
+            <div className="space-y-2">
+                <button onClick={() => handleAITextAction('rewrite')} className="w-full py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl text-[10px] font-bold border-none text-white cursor-pointer transition-all flex items-center justify-center gap-2" type="button">
+                    <EditOutlined /> Rewrite with Style
+                </button>
+                <button onClick={() => handleAITextAction('expand')} className="w-full py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl text-[10px] font-bold border-none text-white cursor-pointer transition-all flex items-center justify-center gap-2" type="button">
+                    <PlusOutlined /> Expand Content
+                </button>
+                <button onClick={() => handleAITextAction('seo')} className="w-full py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl text-[10px] font-bold border-none text-white cursor-pointer transition-all flex items-center justify-center gap-2" type="button">
+                    <TagsOutlined /> SEO Audit
+                </button>
+                <button onClick={handleGenerateSummary} className="w-full py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl text-[10px] font-bold border-none text-white cursor-pointer transition-all flex items-center justify-center gap-2" type="button">
+                    <ThunderboltOutlined /> Generate AI Summary
+                </button>
+            </div>
           </div>
 
         </aside>

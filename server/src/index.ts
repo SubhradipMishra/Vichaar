@@ -20,6 +20,7 @@ import BlogRouter from "./blog/blog.route";
 import interactionRouter from "./interactions/interaction.route";
 import notificationRouter from "./notifications/notification.route";
 import paymentRouter from "./payment/payment.route";
+import aiRouter from "./ai/ai.route";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/blog", BlogRouter);
 app.use("/api/interactions", interactionRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/ai", aiRouter);
 
 
 app.listen(process.env.PORT, () => {

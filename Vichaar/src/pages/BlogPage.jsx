@@ -10,7 +10,8 @@ import {
   BookOutlined,
   HeartOutlined,
   UserAddOutlined,
-  UserDeleteOutlined
+  UserDeleteOutlined,
+  CloseOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { message } from 'antd'
@@ -73,75 +74,87 @@ function PostCard({ post }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       onClick={() => navigate(`/blog/${post._id}`)}
-      className="group bg-white rounded-[32px] overflow-hidden border border-gray-100 transition-all duration-500 hover:border-primary-200 hover:shadow-[0_20px_50px_-20px_rgba(98,65,254,0.1)] cursor-pointer flex flex-col h-full relative"
+      className="group bg-white p-6 md:p-8 rounded-[40px] border border-gray-50 hover:bg-gray-50/50 transition-all duration-500 cursor-pointer relative"
     >
-      {/* Bookmark Button */}
-      <button
-        onClick={toggleSave}
-        className={`absolute top-4 right-4 z-10 w-9 h-9 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer ${isSaved ? 'bg-primary-600 text-white' : 'bg-white/80 backdrop-blur-md text-gray-400 hover:text-primary-600'
-          }`}
-      >
-        <BookOutlined />
-      </button>
-
-      <div className="relative h-52 overflow-hidden">
-        {post.thumbnil ? (
-          <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-        ) : (
-          <div className="w-full h-full bg-gray-50 flex items-center justify-center text-4xl opacity-50">✨</div>
-        )}
-        <div className="absolute top-4 left-4">
-          <span className="px-3 py-1.5 rounded-xl bg-white/90 backdrop-blur-md text-[9px] font-black text-primary-600 uppercase tracking-widest border border-white/50">
-            {post.category}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-7 flex flex-col flex-1">
-        <h3 className="text-xl font-black text-gray-900 mb-3 leading-tight tracking-tight group-hover:text-primary-600 transition-colors line-clamp-2">
-          {post.title}
-        </h3>
-        <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 mb-8 flex-1 font-medium">
-          {post.excerpt}
-        </p>
-
-        <div className="flex items-center justify-between pt-5 border-t border-gray-50">
-          <div className="flex items-center gap-3">
-            <div
-              onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }}
-              className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 overflow-hidden border border-gray-50 hover:border-primary-300 transition-all cursor-pointer"
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex-1 min-w-0">
+          {/* Author info top */}
+          <div className="flex items-center gap-2 mb-4">
+            <div 
+                onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }}
+                className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-100 hover:border-primary-400 transition-all shrink-0"
             >
-              {post.author?.profileImage ? (
-                <img src={`${API_BASE}${post.author.profileImage}`} className="w-full h-full object-cover" />
-              ) : post.author?.name?.[0].toUpperCase() || 'V'}
+                {post.author?.profileImage ? (
+                    <img src={`${API_BASE}${post.author.profileImage}`} className="w-full h-full object-cover" />
+                ) : <span className="text-[8px] font-black">{post.author?.name?.[0].toUpperCase()}</span>}
             </div>
-            <span
-              onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }}
-              className="text-[10px] font-bold text-gray-500 uppercase tracking-wider hover:text-primary-600 transition-colors cursor-pointer"
-            >
-              {post.author?.name || 'Vichaar Editor'}
-            </span>
-            {((!session || (session?._id || session?.id) !== (post.author?._id || post.author?.id))) && (
-              <button 
-                onClick={handleFollow}
-                className={`ml-1 flex items-center justify-center p-1 rounded-lg border-none cursor-pointer transition-all ${
-                  session?.following?.includes(post.author?._id || post.author?.id) 
-                  ? 'text-primary-600 bg-primary-50' 
-                  : 'text-gray-400 hover:text-primary-600 hover:bg-gray-50'
-                }`}
-                title={session?.following?.includes(post.author?._id || post.author?.id) ? "Following" : "Follow"}
-              >
-                {session?.following?.includes(post.author?._id || post.author?.id) ? <UserDeleteOutlined /> : <UserAddOutlined />}
-              </button>
-            )}
+            <p className="text-[11px] font-medium text-gray-500 m-0 flex items-center gap-1.5 flex-wrap">
+                In <span className="text-gray-900 font-bold hover:underline">{post.category}</span> 
+                by <span onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }} className="text-gray-900 font-bold hover:underline">{post.author?.name}</span> 
+                • {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {post.isPremium && <span className="ml-2 text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Premium</span>}
+            </p>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary-600 group-hover:text-white transition-all duration-300">
-            <ArrowRightOutlined className="text-xs" />
+
+          {/* Title & Excerpt */}
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-3 leading-[1.1] tracking-tight group-hover:text-primary-600 transition-colors line-clamp-2">
+            {post.title}
+          </h2>
+          <p className="text-sm md:text-base text-gray-500 leading-relaxed line-clamp-2 mb-8 font-medium max-w-2xl">
+            {post.excerpt}
+          </p>
+
+          {/* Interaction Bar Bottom */}
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center gap-6">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                    <LikeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.likes || 0}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                    <HeartOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.dislikes || 0}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                    <EyeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.views || 0}
+                </span>
+                {((!session || (session?._id || session?.id) !== (post.author?._id || post.author?.id))) && (
+                    <button 
+                        onClick={handleFollow}
+                        className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border-none cursor-pointer transition-all ${
+                            session?.following?.includes(post.author?._id || post.author?.id) 
+                            ? 'text-primary-600 bg-primary-50' 
+                            : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100'
+                        }`}
+                    >
+                        {session?.following?.includes(post.author?._id || post.author?.id) ? 'Following' : 'Follow'}
+                    </button>
+                )}
+            </div>
+
+            <div className="flex items-center gap-3">
+                <button 
+                    onClick={toggleSave}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer text-lg ${
+                        isSaved ? 'text-primary-600 bg-primary-50' : 'text-gray-300 hover:text-primary-600 hover:bg-gray-100'
+                    }`}
+                >
+                    {isSaved ? <BookOutlined /> : <BookOutlined />}
+                </button>
+            </div>
           </div>
+        </div>
+
+        {/* Small Thumbnail Right */}
+        <div className="w-full md:w-48 h-32 md:h-32 rounded-2xl overflow-hidden shrink-0 border border-gray-100 self-center">
+          {post.thumbnil ? (
+            <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" />
+          ) : (
+            <div className="w-full h-full bg-gray-50 flex items-center justify-center text-2xl opacity-20">✨</div>
+          )}
         </div>
       </div>
     </motion.article>
@@ -153,12 +166,21 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('All')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [moreLoading, setMoreLoading] = useState(false)
-
   const navigate = useNavigate()
   const loaderRef = useRef(null)
+
+  // Debounce logic for search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 500) // 500ms delay
+
+    return () => clearTimeout(handler)
+  }, [search])
 
   const fetchBlogs = async (pageNum = 1, isNew = false) => {
     try {
@@ -209,7 +231,7 @@ export default function BlogPage() {
   useEffect(() => {
     setPage(1)
     fetchBlogs(1, true)
-  }, [activeCategory, search])
+  }, [activeCategory, debouncedSearch])
 
   return (
     <div className="min-h-screen bg-paper pb-20">
@@ -230,14 +252,22 @@ export default function BlogPage() {
           </h1>
 
           <div className="max-w-2xl mx-auto relative group mt-12">
-            <SearchOutlined className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 text-xl group-focus-within:text-primary-600 transition-colors" />
+            <SearchOutlined className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl group-focus-within:text-primary-600 transition-colors z-10" />
             <input
               type="text"
-              placeholder="Search by title, keyword, or author..."
-              className="w-full h-16 pl-16 pr-6 bg-white rounded-3xl border border-gray-100 shadow-sm focus:outline-none focus:border-primary-300 focus:shadow-[0_15px_30px_-10px_rgba(98,65,254,0.1)] transition-all font-medium text-gray-600"
+              placeholder="Search stories, authors, or categories..."
+              className="w-full h-16 pl-16 pr-12 bg-white rounded-2xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.02)] focus:outline-none focus:border-primary-400 focus:shadow-[0_10px_30px_rgba(98,65,254,0.08)] transition-all font-medium text-gray-700 placeholder:text-gray-300"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 hover:bg-red-50 hover:text-red-500 border-none cursor-pointer transition-all"
+              >
+                <CloseOutlined />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -267,7 +297,7 @@ export default function BlogPage() {
         ) : (
           <>
             {blogs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
                 {blogs.map((post, idx) => (
                   <PostCard key={`${post._id}-${idx}`} post={post} />
                 ))}
