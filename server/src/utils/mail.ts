@@ -16,18 +16,15 @@ const getTransporter = () => {
 
     transporter = nodemailer.createTransport({
         host: 'smtp-relay.brevo.com',
-        port: 587,
+        port: 465,
+        secure: true, // true for 465, false for other ports
         auth: {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_KEY,
         },
-        // Render/Cloud environment optimizations
-        pool: true,
-        maxConnections: 3,
-        maxMessages: 100,
-        connectionTimeout: 20000,
-        greetingTimeout: 20000,
-        socketTimeout: 20000,
+        connectionTimeout: 30000, // 30 seconds
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
         tls: {
             rejectUnauthorized: false
         }
