@@ -881,7 +881,7 @@ export default function DashboardPage() {
                         className="p-4 rounded-[24px] bg-white border border-gray-50 flex flex-col sm:flex-row sm:items-center gap-5 group hover:border-gray-200 transition-all cursor-pointer"
                       >
                         <div className="w-full sm:w-20 h-48 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-50">
-                          <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <img src={`${API_BASE}${post.thumbnail}`} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5">
@@ -1012,8 +1012,8 @@ export default function DashboardPage() {
                       savedBlogs.map(post => (
                         <div key={post._id} className="flex flex-col md:flex-row md:items-center gap-6 p-6 rounded-[32px] bg-gray-50/60 border border-gray-100 group hover:border-primary-100 transition-all">
                           <div className="w-full md:w-40 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100 shadow-sm">
-                             {post.thumbnil ? (
-                               <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                             {post.thumbnail ? (
+                               <img src={`${API_BASE}${post.thumbnail}`} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                              ) : (
                                <div className="w-full h-full flex items-center justify-center text-2xl">✨</div>
                              )}
@@ -1119,7 +1119,7 @@ export default function DashboardPage() {
                     {adminQueue.length > 0 ? adminQueue.map((post) => (
                       <div key={post._id} className="p-5 rounded-[28px] bg-white border border-gray-50 flex flex-col lg:flex-row lg:items-center gap-6 group hover:border-primary-100 transition-all shadow-sm">
                         <div className="w-full lg:w-32 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-50">
-                          <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover" />
+                          <img src={`${API_BASE}${post.thumbnail}`} alt={post.title} className="w-full h-full object-cover" />
                         </div>
                         
                         <div className="flex-1 min-w-0">

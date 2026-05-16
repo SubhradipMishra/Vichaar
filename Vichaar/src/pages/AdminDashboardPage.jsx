@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
                     className="p-5 rounded-[32px] bg-white border border-gray-100 flex flex-col md:flex-row items-center gap-6 group hover:border-primary-200 transition-all shadow-sm"
                   >
                     <div className="w-full md:w-32 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-50">
-                      <img src={`${API_BASE}${post.thumbnil}`} alt="" className="w-full h-full object-cover" />
+                      <img src={`${API_BASE}${post.thumbnail}`} alt="" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">

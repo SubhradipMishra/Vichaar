@@ -148,8 +148,8 @@ function PostCard({ post }) {
 
         {/* Small Thumbnail Right */}
         <div className="w-full md:w-48 h-32 md:h-32 rounded-2xl overflow-hidden shrink-0 border border-gray-100 self-center">
-          {post.thumbnil ? (
-            <img src={`${API_BASE}${post.thumbnil}`} alt={post.title} className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" />
+          {post.thumbnail ? (
+            <img src={`${API_BASE}${post.thumbnail}`} alt={post.title} className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" />
           ) : (
             <div className="w-full h-full bg-gray-50 flex items-center justify-center text-2xl opacity-20">✨</div>
           )}

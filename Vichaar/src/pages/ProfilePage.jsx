@@ -32,9 +32,9 @@ function PostCard({ post }) {
       className="group bg-white rounded-[32px] overflow-hidden border border-gray-100 transition-all duration-500 hover:border-primary-200 hover:shadow-[0_20px_50px_-20px_rgba(98,65,254,0.1)] cursor-pointer flex flex-col h-full"
     >
       <div className="relative h-48 overflow-hidden">
-        {post.thumbnil ? (
+        {post.thumbnail ? (
           <img 
-            src={`${API_BASE}${post.thumbnil}`} 
+            src={`${API_BASE}${post.thumbnail}`} 
             alt={post.title} 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
           />

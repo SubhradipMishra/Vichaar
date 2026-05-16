@@ -314,9 +314,9 @@ export default function BlogDetail() {
             <div className="px-6">
                 <article className="max-w-4xl mx-auto">
                     {/* Thumbnail */}
-                    {blog.thumbnil && (
+                    {blog.thumbnail && (
                         <div className="rounded-[40px] overflow-hidden mb-12 shadow-2xl shadow-purple-200">
-                            <img src={`${API_BASE}${blog.thumbnil}`} alt={blog.title} className="w-full aspect-video object-cover" />
+                            <img src={`${API_BASE}${blog.thumbnail}`} alt={blog.title} className="w-full aspect-video object-cover" />
                         </div>
                     )}
 

@@ -29,8 +29,8 @@ export default function WritePage() {
   const [isPremium, setIsPremium] = useState(false)
   const [readingTime, setReadingTime] = useState(5)
 
-  const [thumbnil, setThumbnil] = useState(null)
-  const [thumbnilPreview, setThumbnilPreview] = useState(null)
+  const [thumbnail, setThumbnail] = useState(null)
+  const [thumbnailPreview, setThumbnailPreview] = useState(null)
   const [images, setImages] = useState([])
 
   const [loading, setLoading] = useState(false)
@@ -61,11 +61,11 @@ export default function WritePage() {
     }
   }, [draftStorageKey])
 
-  const handleThumbnilChange = (e) => {
+  const handleThumbnailChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setThumbnil(file)
-      setThumbnilPreview(URL.createObjectURL(file))
+      setThumbnail(file)
+      setThumbnailPreview(URL.createObjectURL(file))
     }
   }
 
@@ -196,12 +196,12 @@ export default function WritePage() {
     // Check if content has actual text (ignoring HTML tags)
     const hasContent = content.replace(/<[^>]*>/g, '').trim().length > 0;
 
-    if (!title || !hasContent || !excerpt || !thumbnil) {
+    if (!title || !hasContent || !excerpt || !thumbnail) {
       let missing = [];
       if (!title) missing.push("Title");
       if (!hasContent) missing.push("Blog Content");
       if (!excerpt) missing.push("Short Excerpt");
-      if (!thumbnil) missing.push("Thumbnail Image");
+      if (!thumbnail) missing.push("Thumbnail Image");
 
       alert(`Please fill in the following required fields: ${missing.join(', ')}`)
       return
@@ -229,7 +229,7 @@ export default function WritePage() {
       formData.append('aiSummary', excerpt)
       formData.append('readingTime', readingTime)
 
-      if (thumbnil) formData.append('thumbnil', thumbnil)
+      if (thumbnail) formData.append('thumbnail', thumbnail)
       images.forEach(img => formData.append('images', img))
 
       const { data } = await API.post('/blog/create', formData, {
@@ -270,7 +270,7 @@ export default function WritePage() {
         formData.append('aiSummary', excerpt || "Draft post...");
         formData.append('readingTime', readingTime);
 
-        if (thumbnil) formData.append('thumbnil', thumbnil);
+        if (thumbnail) formData.append('thumbnail', thumbnail);
 
         await API.post('/blog/create', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -352,9 +352,9 @@ export default function WritePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             {/* Thumbnail Upload */}
             <div className="relative aspect-video rounded-[32px] bg-gray-50 border-2 border-dashed border-purple-100 flex flex-col items-center justify-center overflow-hidden group cursor-pointer hover:bg-purple-50 transition-all">
-              {thumbnilPreview ? (
+              {thumbnailPreview ? (
                 <div className="relative w-full h-full">
-                    <img src={thumbnilPreview} className="w-full h-full object-cover" />
+                    <img src={thumbnailPreview} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                         <PictureOutlined className="text-white text-3xl" />
                     </div>
