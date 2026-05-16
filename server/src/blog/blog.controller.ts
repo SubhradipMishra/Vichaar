@@ -7,6 +7,9 @@ import NotificationModel from "../notifications/notification.model";
 
 export const createBlog = async (req: any, res: Response) => {
     try {
+        console.log("DEBUG: req.body:", JSON.stringify(req.body, null, 2));
+        console.log("DEBUG: req.files:", req.files);
+
         const { title, slug, content, excerpt, tags, category, status, seoTitle, seoDescription, aiSummary } = req.body;
         const authorId = req.user?.id || req.user?._id;
 
@@ -20,26 +23,27 @@ export const createBlog = async (req: any, res: Response) => {
             .filter(([_, value]) => !value)
             .map(([key]) => key);
 
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-        const thumbnilFile = files?.thumbnil?.[0];
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+        const thumbnailFile = files?.thumbnail?.[0];
 
-        if (!thumbnilFile) {
+        if (!thumbnailFile) {
             missingFields.push("thumbnail image");
         }
 
         if (missingFields.length > 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: `Missing required fields: ${missingFields.join(", ")}` 
+            return res.status(400).json({
+                success: false,
+                message: `Missing required fields: ${missingFields.join(", ")}`
             });
         }
-        
-        const thumbnil = thumbnilFile.path; // Cloudinary URL
-        const images = files?.images ? files.images.map(file => file.path) : [];
 
-        const blog = await BlogModel.create({ 
-            title, slug, content, excerpt, thumbnil, images, author: authorId, 
-            tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [], 
+        // Use path or url from Cloudinary storage
+        const thumbnail = thumbnailFile?.path || (thumbnailFile as any).url;
+        const images = files?.images ? files.images.map(file => file.path || (file as any).url) : [];
+
+        const blog = await BlogModel.create({
+            title, slug, content, excerpt, thumbnail, images, author: authorId,
+            tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
             category, status: status || "draft", seoTitle, seoDescription, aiSummary,
             readingTime: req.body.readingTime || 0
         });
@@ -113,7 +117,7 @@ export const adminUpdateStatus = async (req: any, res: Response) => {
         if (user) {
             const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
             const adminEmails = admins.map(a => a.email);
-            
+
             // Dashboard Notification
             await NotificationModel.create({
                 recipient: user._id,
@@ -172,7 +176,7 @@ export const getAllBlog = async (req: Request, res: Response) => {
         const allPublished = await BlogModel.countDocuments({ status: "published" });
         console.log(`[DEBUG] Query: ${JSON.stringify(query)}`);
         console.log(`[DEBUG] TotalDocs for query: ${totalDocs}, Total Published in DB: ${allPublished}`);
-        
+
         const eventLoopCheck = await BlogModel.findOne({ title: /Event Loop/i });
         console.log(`[DEBUG] Event Loop Blog Status:`, eventLoopCheck ? { status: eventLoopCheck.status, isDeleted: (eventLoopCheck as any).isDeleted, id: eventLoopCheck._id } : "Not found");
 
@@ -184,7 +188,7 @@ export const getAllBlog = async (req: Request, res: Response) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
-        
+
         console.log(`[DEBUG] Blogs Found (${blogs.length}):`, blogs.map(b => b.title));
 
         const responseData = {
@@ -247,15 +251,18 @@ export const getBlogById = async (req: Request, res: Response) => {
 
 export const updateBlog = async (req: Request, res: Response) => {
     try {
+        console.log("DEBUG: update req.body:", JSON.stringify(req.body, null, 2));
+        console.log("DEBUG: update req.files:", req.files);
+
         const blogId = req.params.blogId;
         const updateData = { ...req.body };
 
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-        if (files?.thumbnil?.[0]) {
-            updateData.thumbnil = files.thumbnil[0].path;
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
+        if (files?.thumbnail?.[0]) {
+            updateData.thumbnail = files.thumbnail[0].path || (files.thumbnail[0] as any).url;
         }
         if (files?.images) {
-            updateData.images = files.images.map(file => file.path);
+            updateData.images = files.images.map(file => file.path || (file as any).url);
         }
 
         if (updateData.tags && !Array.isArray(updateData.tags)) {
@@ -351,7 +358,7 @@ export const incrementViews = async (req: Request, res: Response) => {
     try {
         const blogId = req.params.blogId;
         const blog = await BlogModel.findByIdAndUpdate(blogId, { $inc: { views: 1 } }, { new: true });
-        
+
         if (!blog) return res.status(404).json({ success: false, message: "Blog not found" });
 
         // Invalidate cache
@@ -399,11 +406,11 @@ export const getDashboardStats = async (req: any, res: Response) => {
         if (!authorId) return res.status(401).json({ success: false, message: "Unauthorized" });
 
         const blogs = await BlogModel.find({ author: authorId }).sort({ createdAt: -1 });
-        
+
         const totalPosts = blogs.length;
         const totalViews = blogs.reduce((acc, curr) => acc + (curr.views || 0), 0);
         const totalLikes = blogs.reduce((acc, curr) => acc + (curr.likes || 0), 0);
-        
+
         const recentActivity = blogs.slice(0, 5).map(b => ({
             id: b._id,
             title: b.title,
@@ -485,4 +492,4 @@ export const getSavedBlogs = async (req: any, res: Response) => {
         console.error("Error fetching saved blogs:", error);
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
-}
+}

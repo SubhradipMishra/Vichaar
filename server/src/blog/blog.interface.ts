@@ -6,7 +6,7 @@ export interface IBlog extends Document {
     slug: string;
     content: string;
     excerpt: string;
-    thumbnil: string;
+    thumbnail: string;
     images?: string[];
     author: Types.ObjectId;
     tags?: string[];

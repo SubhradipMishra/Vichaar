@@ -21,7 +21,7 @@ const BlogSchema = new Schema<IBlog>({
         type: String,
         required: true,
     },
-    thumbnil: {
+    thumbnail: {
         type: String,
         required: true,
     },

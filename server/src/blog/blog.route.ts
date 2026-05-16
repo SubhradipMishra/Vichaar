@@ -6,7 +6,7 @@ import { upload } from "../middleware/multer.middleware";
 
 const BlogRouter = Router();
 BlogRouter.post("/create", userAdminGuard, upload.fields([
-    { name: "thumbnil", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
     { name: "images", maxCount: 10 }
 ]), createBlog)
 
@@ -17,7 +17,7 @@ BlogRouter.get("/category/:category", getBlogByCategory)
 BlogRouter.get("/author/:author", getBlogByAuthor)
 
 BlogRouter.put("/update/:blogId", userAdminGuard, upload.fields([
-    { name: "thumbnil", maxCount: 1 },
+    { name: "thumbnail", maxCount: 1 },
     { name: "images", maxCount: 10 }
 ]), updateBlog)
 
