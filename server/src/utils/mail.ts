@@ -1,61 +1,39 @@
-import nodemailer from 'nodemailer';
+import axios from 'axios';
 import dotenv from 'dotenv';
 import path from 'path';
 
 // Ensure env vars are loaded from the correct path
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-let transporter: nodemailer.Transporter | null = null;
-
-const getTransporter = () => {
-    if (transporter) return transporter;
-
-    if (!process.env.SMTP_EMAIL || !process.env.SMTP_KEY) {
-        throw new Error('SMTP credentials are missing in .env file');
-    }
-
-    transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: process.env.SMTP_EMAIL,
-            pass: process.env.SMTP_KEY,
-        },
-        connectionTimeout: 30000, // 30 seconds
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-
-    // Verify connection on startup
-    transporter.verify((error, success) => {
-        if (error) {
-            console.error('SMTP Connection Verification Failed:', error.message);
-        } else {
-            console.log('SMTP Server is ready to take messages');
-        }
-    });
-
-    return transporter;
-};
-
 export const sendEmail = async (to: string, subject: string, text: string, html?: string) => {
     try {
-        const mailOptions = {
-            from: `"Vichaar CMS" <${process.env.SMTP_EMAIL}>`,
-            to,
-            subject,
-            text,
-            html,
-        };
+        if (!process.env.BREVO_EMAIL || !process.env.BREVO_API_KEY) {
+            throw new Error('Brevo API credentials are missing in .env file');
+        }
 
-        const info = await getTransporter().sendMail(mailOptions);
-        return info;
-    } catch (error) {
-        console.error('Error sending email:', error);
+        const response = await axios.post(
+            'https://api.brevo.com/v3/smtp/email',
+            {
+                sender: {
+                    name: 'Vichaar CMS',
+                    email: process.env.BREVO_EMAIL,
+                },
+                to: [{ email: to }],
+                subject,
+                textContent: text,
+                htmlContent: html || text,
+            },
+            {
+                headers: {
+                    'api-key': process.env.BREVO_API_KEY,
+                    'Content-Type': 'application/json',
+                },
+            }
+        );
+
+        return response.data;
+    } catch (error: any) {
+        console.error('Error sending email via Brevo API:', error.response?.data || error.message);
         throw error;
     }
 };
@@ -156,7 +134,7 @@ export const sendPostStatusEmail = async (userEmail: string, userName: string, p
     // Recipient list for admins
     const recipients = adminEmails && adminEmails.length > 0
         ? adminEmails.join(', ')
-        : (process.env.SUPPORT_EMAIL || process.env.SMTP_EMAIL!);
+        : (process.env.SUPPORT_EMAIL || process.env.BREVO_EMAIL!);
 
     await sendEmail(recipients, `[ADMIN] Post Status Update: ${postTitle}`, `Status: ${status}`, adminHtml);
 };
