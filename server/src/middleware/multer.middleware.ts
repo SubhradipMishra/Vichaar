@@ -2,14 +2,19 @@ import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../utils/cloudinary";
 
+console.log("Initializing Cloudinary Storage with Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
+
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: async (req, file) => {
+        if (!process.env.CLOUDINARY_CLOUD_NAME) {
+            console.error("CLOUDINARY_CLOUD_NAME is missing in environment!");
+        }
         return {
             folder: "vichaar_blogs",
-            format: "webp", // Convert all images to webp for optimization
+            format: "webp",
             public_id: file.fieldname + "-" + Date.now(),
-            transformation: [{ width: 1200, height: 630, crop: "limit" }] // Reasonable limit for blog images
+            transformation: [{ width: 1200, height: 630, crop: "limit" }]
         };
     },
 });

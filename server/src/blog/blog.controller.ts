@@ -25,20 +25,25 @@ export const createBlog = async (req: any, res: Response) => {
             readingTime: req.body.readingTime || 0
         });
 
-        const user = await AuthModel.findById(authorId);
-        if (user) {
-            const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
-            const adminEmails = admins.map(a => a.email);
-            await sendPostStatusEmail(user.email, user.name, blog.title, blog.status, undefined, adminEmails);
+        try {
+            const user = await AuthModel.findById(authorId);
+            if (user) {
+                const admins = await AuthModel.find({ role: { $in: ['admin', 'superadmin'] } });
+                const adminEmails = admins.map(a => a.email);
+                await sendPostStatusEmail(user.email, user.name, blog.title, blog.status, undefined, adminEmails);
+            }
+        } catch (emailError) {
+            console.error("Email notification failed for new blog:", emailError);
+            // Don't throw here, the blog is already created
         }
 
         // Invalidate all blogs cache
         await clearCachePattern("blogs:all:*");
 
         return res.status(201).json({ success: true, message: "Blog created successfully", blog });
-    } catch (error) {
-        console.error("Error creating blog:", error);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+    } catch (error: any) {
+        console.error("Detailed Error creating blog:", error);
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
 }
 
