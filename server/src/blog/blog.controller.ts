@@ -41,6 +41,15 @@ export const createBlog = async (req: any, res: Response) => {
         const thumbnail = thumbnailFile?.path || (thumbnailFile as any).url;
         const images = files?.images ? files.images.map(file => file.path || (file as any).url) : [];
 
+        // Check for duplicate slug
+        const existingBlog = await BlogModel.findOne({ slug });
+        if (existingBlog) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "A blog with this title/slug already exists. Please choose a different title." 
+            });
+        }
+
         const blog = await BlogModel.create({
             title, slug, content, excerpt, thumbnail, images, author: authorId,
             tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
