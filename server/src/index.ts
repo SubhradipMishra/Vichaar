@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "https://vichaar-frontend.onrender.com/",
+    origin: process.env.FRONTEND_URL || "https://vichaar-frontend.onrender.com",
     credentials: true
 }))
 
