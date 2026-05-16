@@ -9,6 +9,9 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import BlogDetail from './pages/BlogDetail'
 import PricingPage from './pages/PricingPage'
 import ProfilePage from './pages/ProfilePage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPage from './pages/PrivacyPage'
+import RefundPage from './pages/RefundPage'
 import Context from './util/context'
 import API from './api/api'
 
@@ -53,6 +56,9 @@ function App() {
           <Route path="/blog/:blogId" element={<BlogDetail />} />
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/refund" element={<RefundPage />} />
         </Routes>
       </Router>
     </Context.Provider>

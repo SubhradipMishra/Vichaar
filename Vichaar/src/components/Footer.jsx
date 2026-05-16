@@ -24,9 +24,9 @@ const footerLinks = {
   Resources: [
     { label: 'Documentation', href: REPO_URL, emoji: '📚' },
     { label: 'Help Center', href: `mailto:${SUPPORT_EMAIL}?subject=Help%20Center`, emoji: '🆘' },
-    { label: 'Privacy Policy', href: `mailto:${SUPPORT_EMAIL}?subject=Privacy%20Policy`, emoji: '🔒' },
-    { label: 'Terms of Use', href: `mailto:${SUPPORT_EMAIL}?subject=Terms%20of%20Use`, emoji: '📋' },
-    { label: 'Security', href: `${REPO_URL}/security`, emoji: '🛡️' },
+    { label: 'Privacy Policy', href: '/privacy', emoji: '🔒' },
+    { label: 'Terms of Use', href: '/terms', emoji: '📋' },
+    { label: 'Refund Policy', href: '/refund', emoji: '🛡️' },
     { label: 'Status Page', href: `${REPO_URL}/actions`, emoji: '✅' },
   ],
   'Contact Us': [
