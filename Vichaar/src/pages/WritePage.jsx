@@ -106,7 +106,7 @@ export default function WritePage() {
       
       const { data } = await API.post('/ai/image', { title });
       if (data.success) {
-        setThumbnilPreview(data.imageUrl); // Show preview immediately from our local server
+        setThumbnailPreview(data.imageUrl); // Show preview immediately from our local server
         
         try {
             // Also fetch the blob so we can submit it as a file
@@ -114,7 +114,7 @@ export default function WritePage() {
             if (response.ok) {
                 const blob = await response.blob();
                 const file = new File([blob], 'ai-thumbnail.png', { type: 'image/png' });
-                setThumbnil(file);
+                setThumbnail(file);
             }
         } catch (fetchErr) {
             console.warn("Failed to fetch blob, will use preview URL:", fetchErr);
@@ -365,7 +365,7 @@ export default function WritePage() {
                   <p className="text-[10px] font-black text-purple-300 uppercase tracking-widest">Upload Thumbnail</p>
                 </>
               )}
-              <input type="file" onChange={handleThumbnilChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
+              <input type="file" onChange={handleThumbnailChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
               {(session?.isPremium || session?.role === 'admin') && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); handleAIGenerateImage(); }}
