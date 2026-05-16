@@ -6,7 +6,7 @@ import bcrypt from "bcrypt"
 import { IAuth } from "./auth.interface";
 import jwt from "jsonwebtoken"
 import redisClient from "../redisClient";
-import { sendOTPEmail, sendForgotPasswordEmail } from "../utils/mail";
+import { sendOTPEmail, sendForgotPasswordEmail, sendNewsletterConfirmationEmail } from "../utils/mail";
 import crypto from "crypto";
 
 const COOKIE_OPTIONS = {
@@ -306,6 +306,11 @@ export const toggleNewsletter = async (req: any, res: Response) => {
 
         user.isSubscribed = !user.isSubscribed;
         await user.save();
+
+        // Send confirmation email (async)
+        sendNewsletterConfirmationEmail(user.email, user.name, user.isSubscribed).catch(err => {
+            console.error("Failed to send newsletter confirmation email:", err);
+        });
 
         return res.status(200).json({
             success: true,

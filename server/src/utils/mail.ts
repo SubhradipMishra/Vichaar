@@ -274,3 +274,37 @@ export const sendPaymentEmail = async (userEmail: string, userName: string, plan
 
     return sendEmail(userEmail, subject, `Fresh content for you: ${blog.title}`, html);
 };
+
+export const sendNewsletterConfirmationEmail = async (userEmail: string, userName: string, isSubscribed: boolean) => {
+    const subject = isSubscribed ? "Welcome to Vichaar Weekly! 📬" : "We're sorry to see you go... 📩";
+    const statusText = isSubscribed ? "Subscribed Successfully" : "Unsubscribed Successfully";
+    const statusColor = isSubscribed ? "#10b981" : "#64748b";
+    
+    const html = `
+        <div style="background-color: #f8fafc; padding: 40px 20px; font-family: 'Inter', sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0;">
+                <div style="background: ${statusColor}; padding: 40px; text-align: center; color: white;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">${isSubscribed ? '✅' : '👋'}</div>
+                    <h2 style="margin: 0;">${statusText}</h2>
+                </div>
+                <div style="padding: 40px;">
+                    <p>Hi <strong>${userName}</strong>,</p>
+                    <p>
+                        ${isSubscribed 
+                            ? "You have successfully subscribed to the Vichaar Weekly newsletter. Every other day, we'll send you a hand-picked blog post to keep you inspired and informed." 
+                            : "You have been unsubscribed from the Vichaar Weekly newsletter. You will no longer receive our biennial blog recommendations. We hope to see you back soon!"}
+                    </p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="${process.env.FRONTEND_URL}" style="display: inline-block; padding: 12px 30px; background: #6241fe; color: white; text-decoration: none; border-radius: 12px; font-weight: bold;">Visit Vichaar</a>
+                    </div>
+                </div>
+                <div style="background: #f8fafc; padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
+                    &copy; 2026 Vichaar AI Platform.
+                </div>
+            </div>
+        </div>
+    `;
+
+    return sendEmail(userEmail, subject, statusText, html);
+};
+
