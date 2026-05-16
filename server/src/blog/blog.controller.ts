@@ -1,6 +1,6 @@
 import BlogModel from "./blog.model";
 import { Request, Response } from "express";
-import redisClient from "../redisClient";
+import redisClient, { clearCachePattern } from "../redisClient";
 import { sendPostStatusEmail } from "../utils/mail";
 import AuthModel from "../auth/auth.model";
 import NotificationModel from "../notifications/notification.model";
@@ -33,7 +33,7 @@ export const createBlog = async (req: any, res: Response) => {
         }
 
         // Invalidate all blogs cache
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
 
         return res.status(201).json({ success: true, message: "Blog created successfully", blog });
     } catch (error) {
@@ -62,7 +62,7 @@ export const submitForReview = async (req: any, res: Response) => {
             await sendPostStatusEmail(user.email, user.name, blog.title, 'pending', undefined, adminEmails);
         }
 
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
         return res.status(200).json({ success: true, message: "Post submitted for review", blog });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error" });
@@ -102,7 +102,7 @@ export const adminUpdateStatus = async (req: any, res: Response) => {
             await sendPostStatusEmail(user.email, user.name, blog.title, status, feedback, adminEmails);
         }
 
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
         await redisClient.del(`blog:${blogId}`);
 
         return res.status(200).json({ success: true, message: `Post ${status} successfully`, blog });
@@ -145,6 +145,13 @@ export const getAllBlog = async (req: Request, res: Response) => {
         }
 
         const totalDocs = await BlogModel.countDocuments(query);
+        const allPublished = await BlogModel.countDocuments({ status: "published" });
+        console.log(`[DEBUG] Query: ${JSON.stringify(query)}`);
+        console.log(`[DEBUG] TotalDocs for query: ${totalDocs}, Total Published in DB: ${allPublished}`);
+        
+        const eventLoopCheck = await BlogModel.findOne({ title: /Event Loop/i });
+        console.log(`[DEBUG] Event Loop Blog Status:`, eventLoopCheck ? { status: eventLoopCheck.status, isDeleted: (eventLoopCheck as any).isDeleted, id: eventLoopCheck._id } : "Not found");
+
         const totalPages = Math.ceil(totalDocs / limit);
         const skip = (page - 1) * limit;
 
@@ -153,6 +160,8 @@ export const getAllBlog = async (req: Request, res: Response) => {
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
+        
+        console.log(`[DEBUG] Blogs Found (${blogs.length}):`, blogs.map(b => b.title));
 
         const responseData = {
             blogs,
@@ -240,7 +249,7 @@ export const updateBlog = async (req: Request, res: Response) => {
         }
 
         // Invalidate cache
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
         await redisClient.del(`blog:${blogId}`);
 
         return res.status(200).json({ success: true, message: "Blog updated successfully", blog });
@@ -260,7 +269,7 @@ export const deleteBlog = async (req: Request, res: Response) => {
         }
 
         // Invalidate cache
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
         await redisClient.del(`blog:${blogId}`);
 
         return res.status(200).json({ success: true, message: "Blog deleted successfully", blog });
@@ -323,7 +332,7 @@ export const incrementViews = async (req: Request, res: Response) => {
 
         // Invalidate cache
         await redisClient.del(`blog:${blogId}`);
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
 
         return res.status(200).json({ success: true, views: blog.views });
     } catch (error) {
@@ -340,7 +349,7 @@ export const likeBlog = async (req: Request, res: Response) => {
 
         // Invalidate cache
         await redisClient.del(`blog:${blogId}`);
-        await redisClient.del("blogs:all");
+        await clearCachePattern("blogs:all:*");
 
         return res.status(200).json({ success: true, likes: blog.likes });
     } catch (error) {

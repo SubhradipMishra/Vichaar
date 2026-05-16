@@ -85,19 +85,19 @@ function PostCard({ post }) {
         <div className="flex-1 min-w-0">
           {/* Author info top */}
           <div className="flex items-center gap-2 mb-4">
-            <div 
-                onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }}
-                className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-100 hover:border-primary-400 transition-all shrink-0"
+            <div
+              onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }}
+              className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-100 hover:border-primary-400 transition-all shrink-0"
             >
-                {post.author?.profileImage ? (
-                    <img src={`${API_BASE}${post.author.profileImage}`} className="w-full h-full object-cover" />
-                ) : <span className="text-[8px] font-black">{post.author?.name?.[0].toUpperCase()}</span>}
+              {post.author?.profileImage ? (
+                <img src={`${API_BASE}${post.author.profileImage}`} className="w-full h-full object-cover" />
+              ) : <span className="text-[8px] font-black">{post.author?.name?.[0].toUpperCase()}</span>}
             </div>
             <p className="text-[11px] font-medium text-gray-500 m-0 flex items-center gap-1.5 flex-wrap">
-                In <span className="text-gray-900 font-bold hover:underline">{post.category}</span> 
-                by <span onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }} className="text-gray-900 font-bold hover:underline">{post.author?.name}</span> 
-                • {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                {post.isPremium && <span className="ml-2 text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Premium</span>}
+              In <span className="text-gray-900 font-bold hover:underline">{post.category}</span>
+              by <span onClick={(e) => { e.stopPropagation(); navigate(`/profile/${post.author?._id || post.author?.id}`); }} className="text-gray-900 font-bold hover:underline">{post.author?.name}</span>
+              • {new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {post.isPremium && <span className="ml-2 text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Premium</span>}
             </p>
           </div>
 
@@ -112,38 +112,36 @@ function PostCard({ post }) {
           {/* Interaction Bar Bottom */}
           <div className="flex items-center justify-between mt-auto">
             <div className="flex items-center gap-6">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
-                    <LikeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.likes || 0}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
-                    <HeartOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.dislikes || 0}
-                </span>
-                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
-                    <EyeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.views || 0}
-                </span>
-                {((!session || (session?._id || session?.id) !== (post.author?._id || post.author?.id))) && (
-                    <button 
-                        onClick={handleFollow}
-                        className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border-none cursor-pointer transition-all ${
-                            session?.following?.includes(post.author?._id || post.author?.id) 
-                            ? 'text-primary-600 bg-primary-50' 
-                            : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100'
-                        }`}
-                    >
-                        {session?.following?.includes(post.author?._id || post.author?.id) ? 'Following' : 'Follow'}
-                    </button>
-                )}
+              <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                <LikeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.likes || 0}
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                <HeartOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.dislikes || 0}
+              </span>
+              <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 group/icon hover:text-primary-600 transition-colors">
+                <EyeOutlined className="text-base group-hover/icon:scale-110 transition-transform" /> {post.views || 0}
+              </span>
+              {((!session || (session?._id || session?.id) !== (post.author?._id || post.author?.id))) && (
+                <button
+                  onClick={handleFollow}
+                  className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border-none cursor-pointer transition-all ${session?.following?.includes(post.author?._id || post.author?.id)
+                    ? 'text-primary-600 bg-primary-50'
+                    : 'text-gray-400 hover:text-primary-600 hover:bg-gray-100'
+                    }`}
+                >
+                  {session?.following?.includes(post.author?._id || post.author?.id) ? 'Following' : 'Follow'}
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-3">
-                <button 
-                    onClick={toggleSave}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer text-lg ${
-                        isSaved ? 'text-primary-600 bg-primary-50' : 'text-gray-300 hover:text-primary-600 hover:bg-gray-100'
-                    }`}
-                >
-                    {isSaved ? <BookOutlined /> : <BookOutlined />}
-                </button>
+              <button
+                onClick={toggleSave}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border-none cursor-pointer text-lg ${isSaved ? 'text-primary-600 bg-primary-50' : 'text-gray-300 hover:text-primary-600 hover:bg-gray-100'
+                  }`}
+              >
+                {isSaved ? <BookOutlined /> : <BookOutlined />}
+              </button>
             </div>
           </div>
         </div>
@@ -195,6 +193,7 @@ export default function BlogPage() {
       })
 
       const { data } = await API.get(`/blog?${params.toString()}`)
+      console.log(data)
 
       if (data.success) {
         if (isNew) {
@@ -261,7 +260,7 @@ export default function BlogPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
-              <button 
+              <button
                 onClick={() => setSearch('')}
                 className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 hover:bg-red-50 hover:text-red-500 border-none cursor-pointer transition-all"
               >

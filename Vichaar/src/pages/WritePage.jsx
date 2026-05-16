@@ -366,7 +366,7 @@ export default function WritePage() {
                 </>
               )}
               <input type="file" onChange={handleThumbnilChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" accept="image/*" />
-              {session?.isPremium && (
+              {(session?.isPremium || session?.role === 'admin') && (
                 <button 
                     onClick={(e) => { e.stopPropagation(); handleAIGenerateImage(); }}
                     className="absolute bottom-4 right-4 z-20 px-4 py-2 bg-white/90 backdrop-blur shadow-xl rounded-xl text-[9px] font-black text-primary-600 border-none cursor-pointer flex items-center gap-2 hover:bg-primary-600 hover:text-white transition-all"
@@ -467,8 +467,8 @@ export default function WritePage() {
           </div>
 
           {/* AI Panel */}
-          <div className={`relative bg-gradient-to-br from-primary-600 to-purple-700 rounded-[32px] p-6 text-white shadow-xl overflow-hidden group ${!session?.isPremium ? 'grayscale' : ''}`}>
-            {!session?.isPremium && (
+          <div className={`relative bg-gradient-to-br from-primary-600 to-purple-700 rounded-[32px] p-6 text-white shadow-xl overflow-hidden group ${(session?.isPremium || session?.role === 'admin') ? '' : 'grayscale'}`}>
+            {(!session?.isPremium && session?.role !== 'admin') && (
                 <div className="absolute inset-0 z-20 bg-gray-900/40 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
                     <RobotOutlined className="text-4xl mb-4" />
                     <h5 className="text-sm font-black mb-2 uppercase tracking-tight">AI Assistant is Pro</h5>

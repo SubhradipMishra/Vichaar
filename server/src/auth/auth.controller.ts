@@ -12,7 +12,7 @@ import crypto from "crypto";
 const COOKIE_OPTIONS = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax" as const,
+
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
@@ -269,7 +269,7 @@ export const getPublicProfile = async (req: Request, res: Response) => {
     try {
         const { userId } = req.params;
         const user = await AuthModel.findById(userId).select("-password -email -mobileNumber");
-        
+
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }

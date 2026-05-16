@@ -200,7 +200,7 @@ function SidebarContent({
           {isExpanded && <span className="font-bold text-sm">Help Center</span>}
         </button>
 
-        {isExpanded && !session.isPremium && (
+        {isExpanded && !session.isPremium && session.role !== 'admin' && (
           <div className="mt-6 mx-3 p-5 rounded-[24px] bg-gradient-to-br from-gray-900 to-gray-800 border border-white/5 relative overflow-hidden group">
             <div className="relative z-10">
               <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center mb-3">
@@ -221,14 +221,14 @@ function SidebarContent({
           </div>
         )}
 
-        {isExpanded && session.isPremium && (
+        {isExpanded && (session.isPremium || session.role === 'admin') && (
           <div className="mt-6 mx-3 p-4 rounded-[24px] bg-indigo-50/50 border border-indigo-100 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
               <ThunderboltOutlined className="text-white text-xs" />
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Premium Member</p>
-              <p className="text-[9px] text-indigo-400 font-bold truncate">Pro features active</p>
+              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{session.role === 'admin' ? 'System Administrator' : 'Premium Member'}</p>
+              <p className="text-[9px] text-indigo-400 font-bold truncate">{session.role === 'admin' ? 'Full Access Granted' : 'Pro features active'}</p>
             </div>
           </div>
         )}
@@ -667,7 +667,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    {!session.isPremium ? (
+                    {(!session.isPremium && session.role !== 'admin') ? (
                       <div className="relative">
                         <div className="h-64 w-full bg-gray-50 rounded-2xl flex items-center justify-center border border-dashed border-gray-100 overflow-hidden">
                            <div className="flex flex-col items-center text-center p-6 blur-[1px]">
@@ -747,7 +747,7 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  {session.isPremium && stats?.categoryBreakdown && (
+                  {(session.isPremium || session.role === 'admin') && stats?.categoryBreakdown && (
                     <div className="sm:col-span-2 xl:col-span-3 stagger-item bg-white border border-gray-100 p-8 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                        <h3 className="text-lg font-black text-gray-900 tracking-tight mb-8 text-center sm:text-left">Topic Distribution</h3>
                        <div className="flex flex-col md:flex-row items-center gap-10">
