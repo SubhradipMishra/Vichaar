@@ -59,6 +59,7 @@ const PrivacyPage = () => {
             </p>
           </section>
         </div>
+        </div>
       </div>
       <Footer />
     </div>
