@@ -21,6 +21,8 @@
     "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
+    "@tiptap/extension-collaboration": "^3.23.4",
+    "@tiptap/extension-collaboration-cursor": "^2.26.2",
     "@tiptap/extension-image": "^3.23.1",
     "@tiptap/extension-link": "^3.23.1",
     "@tiptap/extension-placeholder": "^3.23.1",
@@ -35,6 +37,8 @@
     "react-chartjs-2": "^5.3.1",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.15.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.30"
   }
 }
