@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 import AuthModel from '../auth/auth.model';
-import fs from 'fs';
-import path from 'path';
+import cloudinary from '../utils/cloudinary';
 import crypto from 'crypto';
 
 const POLLINATIONS_TEXT_URL = "https://text.pollinations.ai/";
@@ -75,24 +74,28 @@ export const generateImagePrompt = async (req: any, res: Response) => {
 
         const imageUrl = `${POLLINATIONS_IMAGE_URL}${encodeURIComponent(finalImagePrompt)}?width=1280&height=720&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
-        // Download image to local server to avoid CORS issues
+        // Download image to local server buffer
         const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const fileName = `ai_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.png`;
-        const uploadPath = path.join(__dirname, '../../uploads/ai');
         
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
-
-        const filePath = path.join(uploadPath, fileName);
-        fs.writeFileSync(filePath, imageResponse.data);
-
-        // Construct local URL
-        const localUrl = `${req.protocol}://${req.get('host')}/uploads/ai/${fileName}`;
+        // Upload to Cloudinary
+        const uploadResponse = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: "vichaar_ai",
+                    public_id: `ai_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+                    format: 'webp'
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+            uploadStream.end(imageResponse.data);
+        });
 
         return res.status(200).json({
             success: true,
-            imageUrl: localUrl
+            imageUrl: (uploadResponse as any).secure_url
         });
 
     } catch (error: any) {

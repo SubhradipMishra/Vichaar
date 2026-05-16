@@ -1,20 +1,16 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../utils/cloudinary";
 
-// Create uploads directory if it doesn't exist
-const uploadDir = "uploads";
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+        return {
+            folder: "vichaar_blogs",
+            format: "webp", // Convert all images to webp for optimization
+            public_id: file.fieldname + "-" + Date.now(),
+            transformation: [{ width: 1200, height: 630, crop: "limit" }] // Reasonable limit for blog images
+        };
     },
 });
 
@@ -30,6 +26,6 @@ export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB limit
+        fileSize: 10 * 1024 * 1024, // Increased to 10MB as Cloudinary handles resizing
     },
 });

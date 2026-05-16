@@ -15,8 +15,8 @@ export const createBlog = async (req: any, res: Response) => {
         }
         
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-        const thumbnil = files?.thumbnil?.[0] ? `/uploads/${files.thumbnil[0].filename}` : "";
-        const images = files?.images ? files.images.map(file => `/uploads/${file.filename}`) : [];
+        const thumbnil = files?.thumbnil?.[0] ? files.thumbnil[0].path : "";
+        const images = files?.images ? files.images.map(file => file.path) : [];
 
         const blog = await BlogModel.create({ 
             title, slug, content, excerpt, thumbnil, images, author: authorId, 
@@ -228,10 +228,10 @@ export const updateBlog = async (req: Request, res: Response) => {
 
         const files = req.files as { [fieldname: string]: Express.Multer.File[] };
         if (files?.thumbnil?.[0]) {
-            updateData.thumbnil = `/uploads/${files.thumbnil[0].filename}`;
+            updateData.thumbnil = files.thumbnil[0].path;
         }
         if (files?.images) {
-            updateData.images = files.images.map(file => `/uploads/${file.filename}`);
+            updateData.images = files.images.map(file => file.path);
         }
 
         if (updateData.tags && !Array.isArray(updateData.tags)) {
