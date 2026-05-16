@@ -1,7 +1,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { motion, useAnimationControls } from 'framer-motion'
-import { StarFilled, QuoteOutlined } from '@ant-design/icons'
+import { StarFilled } from '@ant-design/icons'
 
 const testimonials = [
   {
