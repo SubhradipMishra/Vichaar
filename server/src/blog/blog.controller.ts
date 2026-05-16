@@ -11,11 +11,30 @@ export const createBlog = async (req: any, res: Response) => {
         const authorId = req.user?.id || req.user?._id;
 
         if (!authorId) {
-            return res.status(401).json({ success: false, message: "Unauthorized: No user found in session" });
+            return res.status(401).json({ success: false, message: "Unauthorized: Please log in to create a post" });
+        }
+
+        // Validation for required fields
+        const requiredFields = { title, slug, content, excerpt, category, seoTitle, seoDescription, aiSummary };
+        const missingFields = Object.entries(requiredFields)
+            .filter(([_, value]) => !value)
+            .map(([key]) => key);
+
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        const thumbnilFile = files?.thumbnil?.[0];
+
+        if (!thumbnilFile) {
+            missingFields.push("thumbnail image");
+        }
+
+        if (missingFields.length > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Missing required fields: ${missingFields.join(", ")}` 
+            });
         }
         
-        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-        const thumbnil = files?.thumbnil?.[0] ? files.thumbnil[0].path : "";
+        const thumbnil = thumbnilFile.path; // Cloudinary URL
         const images = files?.images ? files.images.map(file => file.path) : [];
 
         const blog = await BlogModel.create({ 
