@@ -9,12 +9,18 @@ const getTransporter = () => {
     if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
         throw new Error('SMTP credentials are missing in .env file');
     }
+
     return nodemailer.createTransport({
-        service: 'gmail',
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // IMPORTANT
         auth: {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_PASS,
         },
+        tls: {
+            rejectUnauthorized: false
+        }
     });
 };
 
@@ -93,7 +99,7 @@ export const sendPostStatusEmail = async (userEmail: string, userName: string, p
     };
 
     const config = statusConfig[status] || statusConfig.pending;
-    
+
     const userHtml = `
         <div style="background-color: #f8fafc; padding: 40px 20px; font-family: sans-serif;">
             <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
@@ -130,8 +136,8 @@ export const sendPostStatusEmail = async (userEmail: string, userName: string, p
     `;
 
     // Recipient list for admins
-    const recipients = adminEmails && adminEmails.length > 0 
-        ? adminEmails.join(', ') 
+    const recipients = adminEmails && adminEmails.length > 0
+        ? adminEmails.join(', ')
         : (process.env.SUPPORT_EMAIL || process.env.SMTP_EMAIL!);
 
     await sendEmail(recipients, `[ADMIN] Post Status Update: ${postTitle}`, `Status: ${status}`, adminHtml);
@@ -176,7 +182,7 @@ export const sendAuthorInteractionEmail = async (authorEmail: string, authorName
 export const sendPaymentEmail = async (userEmail: string, userName: string, planName: string, amount: number, status: 'success' | 'failed', paymentId?: string) => {
     const isSuccess = status === 'success';
     const subject = isSuccess ? `Subscription Active: Welcome to Vichaar Pro! 🚀` : `Payment Failed: Action Required ⚠️`;
-    
+
     const html = `
         <div style="background-color: #f8fafc; padding: 40px 20px; font-family: 'Inter', sans-serif;">
             <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 15px 45px rgba(0,0,0,0.06);">
@@ -187,9 +193,9 @@ export const sendPaymentEmail = async (userEmail: string, userName: string, plan
                 <div style="padding: 40px;">
                     <p style="font-size: 16px; color: #1e293b; margin-bottom: 25px;">Hi <strong>${userName}</strong>,</p>
                     <p style="font-size: 15px; color: #475569; line-height: 1.6;">
-                        ${isSuccess 
-                            ? `Great news! Your payment for the <strong>${planName.replace('_', ' ')}</strong> subscription has been processed successfully. You now have full access to all Vichaar Pro features.` 
-                            : `We couldn't process your payment for the <strong>${planName.replace('_', ' ')}</strong> plan. Please check your payment method and try again.`}
+                        ${isSuccess
+            ? `Great news! Your payment for the <strong>${planName.replace('_', ' ')}</strong> subscription has been processed successfully. You now have full access to all Vichaar Pro features.`
+            : `We couldn't process your payment for the <strong>${planName.replace('_', ' ')}</strong> plan. Please check your payment method and try again.`}
                     </p>
                     
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 25px; margin: 30px 0;">
