@@ -10,27 +10,35 @@ let transporter: nodemailer.Transporter | null = null;
 const getTransporter = () => {
     if (transporter) return transporter;
 
-    if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
+    if (!process.env.SMTP_EMAIL || !process.env.SMTP_KEY) {
         throw new Error('SMTP credentials are missing in .env file');
     }
 
     transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
+        host: 'smtp-relay.brevo.com',
         port: 587,
-        secure: false, // Use STARTTLS
         auth: {
             user: process.env.SMTP_EMAIL,
-            pass: process.env.SMTP_PASS,
+            pass: process.env.SMTP_KEY,
         },
-        // Render/Heroku best practices
+        // Render/Cloud environment optimizations
         pool: true,
-        maxConnections: 5,
+        maxConnections: 3,
         maxMessages: 100,
-        connectionTimeout: 20000, // 20s
-        greetingTimeout: 20000,   // 20s
-        socketTimeout: 20000,     // 20s
+        connectionTimeout: 20000,
+        greetingTimeout: 20000,
+        socketTimeout: 20000,
         tls: {
-            rejectUnauthorized: false // Helps with some cloud network restrictions
+            rejectUnauthorized: false
+        }
+    });
+
+    // Verify connection on startup
+    transporter.verify((error, success) => {
+        if (error) {
+            console.error('SMTP Connection Verification Failed:', error.message);
+        } else {
+            console.log('SMTP Server is ready to take messages');
         }
     });
 
