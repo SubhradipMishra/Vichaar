@@ -1,16 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowRightOutlined,
-  CheckCircleFilled,
-  ThunderboltFilled,
 } from '@ant-design/icons'
-
-gsap.registerPlugin(ScrollTrigger)
-
 
 
 // Sketch doodle SVGs for decoration
@@ -37,8 +30,6 @@ const sketchElements = [
 
 export default function CTA() {
   const sectionRef = useRef(null)
-  const [email, setEmail] = useState('')
-  const [submitted, setSubmitted] = useState(false)
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
