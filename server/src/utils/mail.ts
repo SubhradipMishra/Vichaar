@@ -5,23 +5,36 @@ import path from 'path';
 // Ensure env vars are loaded from the correct path
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+let transporter: nodemailer.Transporter | null = null;
+
 const getTransporter = () => {
+    if (transporter) return transporter;
+
     if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASS) {
         throw new Error('SMTP credentials are missing in .env file');
     }
 
-    return nodemailer.createTransport({
+    transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
-        secure: false, // IMPORTANT
+        secure: false, // Use STARTTLS
         auth: {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_PASS,
         },
+        // Render/Heroku best practices
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        connectionTimeout: 20000, // 20s
+        greetingTimeout: 20000,   // 20s
+        socketTimeout: 20000,     // 20s
         tls: {
-            rejectUnauthorized: false
+            rejectUnauthorized: false // Helps with some cloud network restrictions
         }
     });
+
+    return transporter;
 };
 
 export const sendEmail = async (to: string, subject: string, text: string, html?: string) => {
