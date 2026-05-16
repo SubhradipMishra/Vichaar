@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheckOutlined, LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { SafetyCertificateOutlined, LockOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -16,7 +16,7 @@ const PrivacyPage = () => {
           className="text-center mb-16"
         >
           <div className="inline-block p-4 rounded-[24px] bg-green-50 text-green-600 mb-6">
-            <ShieldCheckOutlined className="text-4xl" />
+            <SafetyCertificateOutlined className="text-4xl" />
           </div>
           <h1 className="text-5xl md:text-6xl font-black text-gray-900 mb-6 tracking-tight">Privacy & Security</h1>
           <p className="text-gray-500 text-lg">Your data privacy is our top priority.</p>
