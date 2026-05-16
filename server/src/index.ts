@@ -21,8 +21,12 @@ import interactionRouter from "./interactions/interaction.route";
 import notificationRouter from "./notifications/notification.route";
 import paymentRouter from "./payment/payment.route";
 import aiRouter from "./ai/ai.route";
+import { initCronJobs } from "./utils/cronJobs";
 
 const app = express();
+
+// Initialize Cron Jobs
+initCronJobs();
 
 
 app.use(express.json());

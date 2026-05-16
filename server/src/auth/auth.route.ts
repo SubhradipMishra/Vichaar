@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { signup, Login, Logout, getMe, getSession, requestOTP, forgotPassword, resetPassword, toggleFollowUser, getPublicProfile } from "./auth.controller";
+import { signup, Login, Logout, getMe, getSession, requestOTP, forgotPassword, resetPassword, toggleFollowUser, getPublicProfile, toggleNewsletter } from "./auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 
 const authRouter = Router();
@@ -13,6 +13,7 @@ authRouter.post("/reset-password", resetPassword);
 authRouter.get("/getSession", authMiddleware, getSession);
 authRouter.post("/follow/:targetUserId", authMiddleware, toggleFollowUser);
 authRouter.get("/profile/:userId", getPublicProfile);
+authRouter.post("/newsletter/toggle", authMiddleware, toggleNewsletter);
 
 
 export default authRouter;

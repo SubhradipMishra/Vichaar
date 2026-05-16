@@ -19,4 +19,5 @@ export interface IAuth extends Document {
     savedPosts: Types.ObjectId[];
     followers: Types.ObjectId[];
     following: Types.ObjectId[];
+    isSubscribed: boolean;
 }

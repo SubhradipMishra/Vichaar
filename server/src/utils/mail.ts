@@ -232,6 +232,45 @@ export const sendPaymentEmail = async (userEmail: string, userName: string, plan
     `;
 
     return sendEmail(userEmail, subject, `Payment ${status} for ${planName}`, html);
+};export const sendNewsletterEmail = async (userEmail: string, userName: string, blog: any) => {
+    const subject = `Vichaar Weekly: "${blog.title}" - A fresh perspective for you 📖`;
+    const postUrl = `${process.env.FRONTEND_URL}/blog/${blog.slug || blog.title.toLowerCase().split(' ').join('-')}`;
+
+    const html = `
+        <div style="background-color: #f0f2f5; padding: 50px 20px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 32px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
+                <div style="background: linear-gradient(135deg, #6241fe 0%, #7c3aed 100%); padding: 60px 40px; text-align: center; color: white;">
+                    <div style="display: inline-block; width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 14px; line-height: 50px; font-size: 24px; font-weight: 900; margin-bottom: 20px;">V</div>
+                    <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -1px;">Newsletter</h1>
+                    <p style="opacity: 0.8; margin-top: 10px; font-size: 16px;">Curated just for you, ${userName}</p>
+                </div>
+                <div style="padding: 40px;">
+                    ${blog.thumbnail ? `
+                    <div style="margin-bottom: 30px; border-radius: 20px; overflow: hidden; height: 250px;">
+                        <img src="${blog.thumbnail}" alt="${blog.title}" style="width: 100%; height: 100%; object-fit: cover;" />
+                    </div>
+                    ` : ''}
+                    <h2 style="color: #111827; font-size: 26px; font-weight: 800; line-height: 1.3; margin-bottom: 15px;">${blog.title}</h2>
+                    <p style="color: #4b5563; font-size: 17px; line-height: 1.7; margin-bottom: 30px;">
+                        ${blog.description || 'Dive into this insightful piece on Vichaar. Our AI and community have highlighted this as a must-read for today.'}
+                    </p>
+                    <div style="text-align: center;">
+                        <a href="${postUrl}" style="display: inline-block; padding: 16px 40px; background: #6241fe; color: white; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 25px rgba(98, 65, 254, 0.3);">Read Full Story</a>
+                    </div>
+                </div>
+                <div style="background: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #f3f4f6;">
+                    <p style="color: #9ca3af; font-size: 13px; margin: 0;">
+                        You are receiving this because you subscribed to the Vichaar newsletter.
+                    </p>
+                    <div style="margin-top: 15px;">
+                        <a href="${process.env.FRONTEND_URL}/dashboard" style="color: #6241fe; text-decoration: none; font-size: 12px; font-weight: 600;">Manage Preferences</a>
+                        <span style="color: #d1d5db; margin: 0 10px;">•</span>
+                        <a href="${process.env.FRONTEND_URL}/privacy" style="color: #6241fe; text-decoration: none; font-size: 12px; font-weight: 600;">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return sendEmail(userEmail, subject, `Fresh content for you: ${blog.title}`, html);
 };
-
-

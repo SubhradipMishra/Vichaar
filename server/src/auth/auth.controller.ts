@@ -291,3 +291,29 @@ export const getPublicProfile = async (req: Request, res: Response) => {
         return res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
+
+export const toggleNewsletter = async (req: any, res: Response) => {
+    try {
+        const userId = req.user?.id || req.user?._id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Not authenticated" });
+        }
+
+        const user = await AuthModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        user.isSubscribed = !user.isSubscribed;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: user.isSubscribed ? "Subscribed to newsletter successfully" : "Unsubscribed from newsletter successfully",
+            isSubscribed: user.isSubscribed
+        });
+    } catch (error: any) {
+        console.error("Error in toggleNewsletter:", error);
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+}

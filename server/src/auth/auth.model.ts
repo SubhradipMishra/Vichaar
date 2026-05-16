@@ -81,6 +81,10 @@ const AuthSchema = new Schema<IAuth>(
                 ref: "Auth",
             },
         ],
+        isSubscribed: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,
