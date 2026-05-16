@@ -11,66 +11,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger)
 
-const plans = [
-  {
-    name: 'Free',
-    price: '₹0',
-    period: '/forever',
-    desc: 'Perfect for casual writers getting started.',
-    color: '#6b7280',
-    bg: '#f9fafb',
-    border: '#e5e7eb',
-    cta: 'Get Started Free',
-    features: [
-      '5 AI-generated posts/month',
-      'Basic SEO suggestions',
-      '1 blog site',
-      'Community support',
-      'Vichaar branding',
-    ],
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '₹599',
-    period: '/month',
-    desc: 'For serious bloggers who want to grow faster.',
-    color: '#6241fe',
-    bg: 'linear-gradient(135deg, #6241fe 0%, #7c3aed 100%)',
-    border: '#6241fe',
-    cta: 'Start Pro — Free 14 Days',
-    features: [
-      'Unlimited AI posts',
-      'Advanced SEO optimizer',
-      '5 blog sites',
-      'Analytics dashboard',
-      'Multi-language (10 langs)',
-      'Priority support',
-      'No Vichaar branding',
-    ],
-    highlight: true,
-  },
-  {
-    name: 'Team',
-    price: '₹1,999',
-    period: '/month',
-    desc: 'For content teams publishing at scale.',
-    color: '#059669',
-    bg: '#f0fdf4',
-    border: '#86efac',
-    cta: 'Start Team Trial',
-    features: [
-      'Everything in Pro',
-      'Unlimited team members',
-      'Collaboration & reviews',
-      'Custom AI voice training',
-      'API access',
-      'Dedicated account manager',
-      '50+ language support',
-    ],
-    highlight: false,
-  },
-]
+
 
 // Sketch doodle SVGs for decoration
 const sketchElements = [
@@ -98,35 +39,19 @@ export default function CTA() {
   const sectionRef = useRef(null)
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const [activeTab, setActiveTab] = useState('annual')
+  const [email, setEmail] = useState('')
+  const [submitted, setSubmitted] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (email) setSubmitted(true)
   }
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo('.pricing-card',
-        { opacity: 0, y: 60, scale: 0.95 },
-        {
-          opacity: 1, y: 0, scale: 1,
-          duration: 0.7,
-          stagger: 0.12,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: '.pricing-grid',
-            start: 'top 80%',
-          },
-        }
-      )
-    }, sectionRef)
-    return () => ctx.revert()
-  }, [])
+
 
   return (
     <section
-      id="pricing"
+      id="cta"
       ref={sectionRef}
       className="section-padding relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #fdf4ff 0%, #f8f7ff 50%, #ede9fe 100%)' }}
@@ -150,137 +75,9 @@ export default function CTA() {
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="text-center mb-12"
-        >
-          <div className="sketch-badge mb-4">✦ Pricing</div>
-          <h2 className="section-heading mb-5">
-            Start free,{' '}
-            <span className="gradient-text">scale as you grow</span>
-          </h2>
-          <p className="section-sub text-center mx-auto mb-8">
-            No hidden fees. Cancel anytime. Your first 14 days on Pro are completely free.
-          </p>
 
-          {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 p-1 rounded-full"
-            style={{ background: '#e8e5ff' }}>
-            {['monthly', 'annual'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className="px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300"
-                style={{
-                  background: activeTab === tab ? '#6241fe' : 'transparent',
-                  color: activeTab === tab ? 'white' : '#6241fe',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                {tab === 'annual' && (
-                  <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
-                    style={{ background: activeTab === 'annual' ? 'rgba(255,255,255,0.2)' : 'rgba(98,65,254,0.15)', color: activeTab === 'annual' ? 'white' : '#6241fe' }}>
-                    Save 30%
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </motion.div>
 
-        {/* Pricing Cards */}
-        <div className="pricing-grid grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
-          {plans.map((plan, i) => (
-            <div
-              key={i}
-              className="pricing-card relative rounded-3xl overflow-hidden"
-              style={{
-                border: `2px solid ${plan.highlight ? 'transparent' : plan.border}`,
-                boxShadow: plan.highlight
-                  ? '0 20px 60px rgba(98,65,254,0.3)'
-                  : '0 4px 20px rgba(98,65,254,0.06)',
-              }}
-            >
-              {plan.highlight && (
-                <div className="absolute inset-0 rounded-3xl" style={{ background: plan.bg, zIndex: 0 }} />
-              )}
-              {!plan.highlight && (
-                <div className="absolute inset-0 rounded-3xl" style={{ background: plan.bg, zIndex: 0 }} />
-              )}
 
-              {/* Popular badge */}
-              {plan.highlight && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                  <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold text-white"
-                    style={{ background: '#f59e0b', boxShadow: '0 4px 12px rgba(245,158,11,0.4)' }}>
-                    <ThunderboltFilled className="text-xs" />
-                    Most Popular
-                  </div>
-                </div>
-              )}
-
-              <div className="relative z-10 p-8">
-                <div className="mb-6">
-                  <div className="text-sm font-bold mb-1"
-                    style={{ color: plan.highlight ? 'rgba(255,255,255,0.7)' : plan.color }}>
-                    {plan.name}
-                  </div>
-                  <div className="flex items-end gap-1 mb-2">
-                    <span className="text-4xl font-black"
-                      style={{ color: plan.highlight ? 'white' : '#1a1a2e' }}>
-                      {activeTab === 'annual' && plan.price !== '₹0'
-                        ? `₹${Math.round(parseInt(plan.price.slice(1)) * 0.7)}`
-                        : plan.price}
-                    </span>
-                    <span className="text-sm mb-1.5"
-                      style={{ color: plan.highlight ? 'rgba(255,255,255,0.6)' : '#9ca3af' }}>
-                      {plan.period}
-                    </span>
-                  </div>
-                  <p className="text-sm" style={{ color: plan.highlight ? 'rgba(255,255,255,0.8)' : '#6b7280' }}>
-                    {plan.desc}
-                  </p>
-                </div>
-
-                <Link to="/signup" className="no-underline">
-                  <motion.button
-                    whileHover={{ scale: 1.02, y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-3.5 rounded-xl font-semibold text-sm mb-7 transition-all"
-                    style={{
-                      background: plan.highlight ? 'white' : '#6241fe',
-                      color: plan.highlight ? '#6241fe' : 'white',
-                      border: 'none',
-                      cursor: 'pointer',
-                      boxShadow: plan.highlight ? '0 4px 16px rgba(255,255,255,0.3)' : '0 4px 16px rgba(98,65,254,0.3)',
-                    }}
-                  >
-                    {plan.cta}
-                  </motion.button>
-                </Link>
-
-                <div className="flex flex-col gap-3">
-                  {plan.features.map((f, fi) => (
-                    <div key={fi} className="flex items-start gap-2.5 text-sm">
-                      <CheckCircleFilled
-                        className="mt-0.5 shrink-0 text-base"
-                        style={{ color: plan.highlight ? 'rgba(255,255,255,0.9)' : '#6241fe' }}
-                      />
-                      <span style={{ color: plan.highlight ? 'rgba(255,255,255,0.85)' : '#4b5563' }}>
-                        {f}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* Email Waitlist / CTA bottom */}
         <motion.div
